@@ -77,7 +77,6 @@ for key in Morse_Dict.keys():
         b.append((time,channel,1))
         time = time+space+1
     SpikeArray = np.array(b,dtype = [('t','<i4'),('x','<i4'),('p','<i4')])
-    #For dataset, you will need a label as well. Don't forget to create a tuple
     New_Dataset.append((SpikeArray,key))
     SpikeDict[key] = SpikeArray
 
@@ -153,75 +152,72 @@ for idx,word in enumerate(Top50List):
     list = []
     for i,ch in enumerate(word):
         Spikes = np.copy(SpikeDict[ch])
-        Spikes['t'] += time #The issue is that it is adding to dictionary here, for some reason.
+        Spikes['t'] += time 
         time = Spikes[-1][0]+(1+letter_space)
         list.append(Spikes)
-    # EndArray = np.array([Spikes[-1][0]+1,0,0],dtype = [('t','<i4'),('x','<i4'),('p','<i4')])
-    # list.append(EndArray)
+
     WholeArray = np.concatenate(list)
     WordDataset.append((WholeArray,word))
 
-#Start with pickle, move to other form once completed.
 f = open('Top50Dataset.pckl' ,'wb')
 pickle.dump(WordDataset,f)
 f.close()
 
-#A strange format for now, but will be converted later.
-test_dict = {'the':(0,[],[]),
-             'be':(0,[],[]),
-             'to':(0,[],[]),
-             'of':(0,[],[]),
-             'and':(0,[],[]),
-             'a':(0,[],[]),
-             'in':(0,[],[]),
-             'that':(0,[],[]),
-             'have':(0,[],[]),
-             'i':(0,[],[]),
-             'it':(0,[],[]),
-             'for':(0,[],[]),
-             'not':(0,[],[]),
-             'on':(0,[],[]),
-             'with':(0,[],[]),
-             'he':(0,[],[]),
-             'as':(0,[],[]),
-             'you':(0,[],[]),
-             'do':(0,[],[]),
-             'at':(0,[],[]),
-             'this':(0,[],[]),
-             'but':(0,[],[]),
-             'his':(0,[],[]),
-             'by':(0,[],[]),
-             'from':(0,[],[]),
-             'they':(0,[],[]),
-             'we':(0,[],[]),
-             'say':(0,[],[]),
-             'her':(0,[],[]),
-             'she':(0,[],[]),
-             'or':(0,[],[]),
-             'an':(0,[],[]),
-             'will':(0,[],[]),
-             'my':(0,[],[]),
-             'one':(0,[],[]),
-             'all':(0,[],[]),
-             'would':(0,[],[]),
-             'there':(0,[],[]),
-             'their':(0,[],[]),
-             'what':(0,[],[]),
-             'so':(0,[],[]),
-             'up':(0,[],[]),
-             'out':(0,[],[]),
-             'if':(0,[],[]),
-             'about':(0,[],[]),
-             'who':(0,[],[]),
-             'get':(0,[],[]),
-             'which':(0,[],[]),
-             'go':(0,[],[]),
-             'me':(0,[],[])}
+test_dict = {'the':[0,[],[]],
+             'be':[0,[],[]],
+             'to':[0,[],[]],
+             'of':[0,[],[]],
+             'and':[0,[],[]],
+             'a':[0,[],[]],
+             'in':[0,[],[]],
+             'that':[0,[],[]],
+             'have':[0,[],[]],
+             'i':[0,[],[]],
+             'it':[0,[],[]],
+             'for':[0,[],[]],
+             'not':[0,[],[]],
+             'on':[0,[],[]],
+             'with':[0,[],[]],
+             'he':[0,[],[]],
+             'as':[0,[],[]],
+             'you':[0,[],[]],
+             'do':[0,[],[]],
+             'at':[0,[],[]],
+             'this':[0,[],[]],
+             'but':[0,[],[]],
+             'his':[0,[],[]],
+             'by':[0,[],[]],
+             'from':[0,[],[]],
+             'they':[0,[],[]],
+             'we':[0,[],[]],
+             'say':[0,[],[]],
+             'her':[0,[],[]],
+             'she':[0,[],[]],
+             'or':[0,[],[]],
+             'an':[0,[],[]],
+             'will':[0,[],[]],
+             'my':[0,[],[]],
+             'one':[0,[],[]],
+             'all':[0,[],[]],
+             'would':[0,[],[]],
+             'there':[0,[],[]],
+             'their':[0,[],[]],
+             'what':[0,[],[]],
+             'so':[0,[],[]],
+             'up':[0,[],[]],
+             'out':[0,[],[]],
+             'if':[0,[],[]],
+             'about':[0,[],[]],
+             'who':[0,[],[]],
+             'get':[0,[],[]],
+             'which':[0,[],[]],
+             'go':[0,[],[]],
+             'me':[0,[],[]]}
 
 f = open('corpus.txt','r',encoding="utf8")
 time = 0
 list = []
-# #You'll want something for word times, for reference.
+
 for string in f:
     Stringlist = string.lower().split()
 
