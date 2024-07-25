@@ -101,7 +101,7 @@ for d in DropoutList:
 
             #Calculate Jitter                        
             if JitterDev>0:
-                t_jitter = np.random.normal(0,JitterDev,TestData.__len__())
+                t_jitter = np.random.normal(0,JitterDev,ReplacedData.__len__())
                 ReplacedData['t'] = ReplacedData['t'] + t_jitter
             
             #Calculate amount of Poisson Noise:
@@ -115,8 +115,8 @@ for d in DropoutList:
                 Channel0_times = Channel0_times[Channel0_times<TestData[-1][0]]
                 Channel1_times = Channel1_times[Channel1_times<TestData[-1][0]]
 
-                Channel0_array = np.zeros(Channel0_times.shape[0],dtype = [('t','<i4'),('x','<i4'),('p','<i4')])
-                Channel1_array = np.zeros(Channel1_times.shape[0],dtype = [('t','<i4'),('x','<i4'),('p','<i4')])
+                Channel0_array = np.zeros(Channel0_times.shape[0],dtype = [('t','<f4'),('x','<f4'),('p','<f4')])
+                Channel1_array = np.zeros(Channel1_times.shape[0],dtype = [('t','<f4'),('x','<f4'),('p','<f4')])
 
                 Channel0_array['t'] = Channel0_times
                 Channel0_array['x'] = 0

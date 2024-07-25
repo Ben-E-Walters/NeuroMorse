@@ -3,9 +3,9 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=10
-#SBATCH --mem=1000G
+#SBATCH --mem=500G
 #SBATCH --job-name=Bunya_AutoEncode
-#SBATCH --time=20:00:00
+#SBATCH --time=2:00:00
 #SBATCH --partition=general
 #SBATCH --account=a_rahimi
 #SBATCH -o AddNoiseOut.txt

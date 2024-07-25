@@ -76,7 +76,7 @@ for key in Morse_Dict.keys():
             channel = 1
         b.append((time,channel,1))
         time = time+space+1
-    SpikeArray = np.array(b,dtype = [('t','<i4'),('x','<i4'),('p','<i4')])
+    SpikeArray = np.array(b,dtype = [('t','<f4'),('x','<f4'),('p','<f4')])
     New_Dataset.append((SpikeArray,key))
     SpikeDict[key] = SpikeArray
 
@@ -92,7 +92,7 @@ for key in Morse_Dict.keys():
             channel = 1
         b.append((time,channel,1))
         time = time+space+1
-    SpikeArray = np.array(b,dtype = [('t','<i4'),('x','<i4'),('p','<i4')])
+    SpikeArray = np.array(b,dtype = [('t','<f4'),('x','<f4'),('p','<f4')])
     Morse_Spike_Dict[key] = SpikeArray
 
 #List of top 50 words        
