@@ -266,7 +266,7 @@ for j in range(columns):
     
     while time<rows:
         row_idx = TestArray[counter][0]%rows
-        plotting[row_idx,TestArray[counter][1]+2*j] = 1
+        plotting[row_idx.__int__(),TestArray[counter][1].__int__()+2*j] = 1
         time += TestArray[counter][0] - j*rows
         counter+=1
 plt.figure()

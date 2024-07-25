@@ -74,7 +74,7 @@ for d in DropoutList:
                 if PoissonRate >0:
                     while flag == False:
                         PoissonTimes = np.random.exponential(1/PoissonRate,2)
-                        times += PoissonTimes.round()
+                        times += PoissonTimes
                         if times[0] < ReplacedData[-1][0]:
                             ReplacedData = np.insert(ReplacedData,1,(times[0],0,1))
                             
@@ -106,8 +106,8 @@ for d in DropoutList:
             
             #Calculate amount of Poisson Noise:
             if PoissonRate >0:
-                Channel0_Poisson = np.random.exponential(1/PoissonRate,TestData[-1][0])
-                Channel1_Poisson = np.random.exponential(1/PoissonRate,TestData[-1][0])
+                Channel0_Poisson = np.random.exponential(1/PoissonRate,TestData[-1][0].__int__())
+                Channel1_Poisson = np.random.exponential(1/PoissonRate,TestData[-1][0].__int__())
 
                 Channel0_times = np.cumsum(Channel0_Poisson)
                 Channel1_times = np.cumsum(Channel1_Poisson)
