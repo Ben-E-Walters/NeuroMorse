@@ -8,10 +8,14 @@ Dropout = ['None','Low','High']
 Jitter = ['None','Low','High']
 Poisson = ['None','Low','High']
 
-f = open('TestDict.pckl','rb')
-TestDict = pickle.load(f)
-f.close()
+# f = open('TestDict.pckl','rb')
+# TestDict = pickle.load(f)
+# f.close()
 
+f = open('Top50Testset.pckl','rb')
+TestSet = pickle.load(f)
+TestDict = TestSet[1]
+f.close()
 
 
 
@@ -51,7 +55,7 @@ for d in Dropout:
 
             
             Spike_group = file.create_group('Spikes')
-            dt = h5py.vlen_dtype(np.dtype('int32'))
+            dt = h5py.vlen_dtype(np.dtype('float64'))
             dt_labels = h5py.string_dtype()
 
             SpikeDataset = Spike_group.create_dataset('Times',(50,),dtype = dt) 
@@ -71,15 +75,15 @@ for d in Dropout:
             TestDataset = pickle.load(f)
             f.close()
 
-            Spike_group = file_test.create_group('Spikes' %(name))
+            Spike_group = file_test.create_group('Spikes')
             
-            dt = h5py.vlen_dtype(np.dtype('int32'))
+            dt = h5py.vlen_dtype(np.dtype('float64'))
             dt_labels = h5py.string_dtype()
 
             TimeDataset = Spike_group.create_dataset('Times',(1,),dtype = dt)
             ChannelDataset = Spike_group.create_dataset('Channels',(1,), dtype = dt)
 
-            dt = h5py.vlen_dtype(np.dtype('int32'))
+            dt = h5py.vlen_dtype(np.dtype('float64'))
             dt_labels = h5py.string_dtype()
             Label_group = file_test.create_group('Labels' )
             LabelsDataset = Label_group.create_dataset('Labels',(50,),dtype = dt_labels)
@@ -89,14 +93,14 @@ for d in Dropout:
             TimeList = []
             ChannelList = []
 
-            for event in TestDataset[0]:
+            for event in TestDataset[0][0]:
                 TimeList.append(event[0])
                 ChannelList.append(event[1])
             
             TimeDataset[0] = np.array(TimeList)
             ChannelDataset[0] = np.array(ChannelList)
 
-            for idx,key in enumerate(TestDataset[1]):
+            for idx,key in enumerate(TestDataset[0][1]):
                 LabelsDataset[idx] = key
                 StartTimesDataset[idx] = np.array(TestDict[key][1])
                 EndTimesDataset[idx] = np.array(TestDict[key][2])

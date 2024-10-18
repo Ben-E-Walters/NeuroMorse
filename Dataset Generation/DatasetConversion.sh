@@ -13,8 +13,10 @@
 
 
 module load anaconda3/2022.05
-source /sw/auto/rocky8.6/epyc3/software/Anaconda3/2022.05/etc/profile.d/conda.sh
+source $EBROOTANACONDA3/etc/profile.d/conda.sh
 conda activate myenv
+export PATH=/home/benwalters/.conda/envs/myenv/bin:$PATH
+export PYTHONPATH=/home/benwalters/.conda/envs/myenv/lib/python3.11/site-packages:$PYTHONPATH
 cd /scratch/user/benwalters/Morse\ Code\ Dataset
 
-python DatasetConversion.py
+python NeuroMorse/Dataset\ Generation/DatasetConversion.py

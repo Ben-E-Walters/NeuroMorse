@@ -283,9 +283,9 @@ for j in range(50):
     
     data,label = WordDataset[j]
     
-    plotting = np.zeros((data[-1][0]+1,2))
+    plotting = np.zeros((int(data[-1][0])+1,2))
     for i in data: 
-        plotting[i[0],i[1]] = 1
+        plotting[int(i[0]),int(i[1])] = 1
 
     plt.figure()
     plt.imshow(plotting,vmin = 0, vmax = 1)
