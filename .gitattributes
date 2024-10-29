@@ -1,1 +1,2 @@
 .pckl filter=lfs diff=lfs merge=lfs -text
+*.pckl filter=lfs diff=lfs merge=lfs -text
