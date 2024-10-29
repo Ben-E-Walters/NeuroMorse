@@ -73,10 +73,10 @@ word_space = 15
 
 for i in range(50):
     data,label = Dataset[i]
-    data_neuro = torch.zeros((data[-1][0]+1+word_space,2))
+    data_neuro = torch.zeros((int(data[-1][0])+1+word_space,2))
     network.mem1.zero_()
     for idx in data: 
-        data_neuro[idx[0],idx[1]] = 1
+        data_neuro[int(idx[0]),int(idx[1])] = 1
     
     for j in range(data_neuro.shape[0]):
         spk1, mem1 = network.step(data_neuro[j,:])
@@ -121,7 +121,7 @@ for i in range(50):
 #         correct+=1
 # # print(test)
 # print(testlist)
-print(correct)
+print('Total Correct:{}'.format(correct))
 
 
 ##### Test Set Verification #####
@@ -157,9 +157,9 @@ SpikeData = []
 #Convert each dataset to spikes
 for i in range(num_classes):
     data, label = Dataset[i]
-    data_neuro = torch.zeros((data[-1][0]+1+word_space,num_channels))
+    data_neuro = torch.zeros((int(data[-1][0])+1+word_space,num_channels))
     for idx in data: 
-        data_neuro[idx[0],idx[1]] = 1
+        data_neuro[int(idx[0]),int(idx[1])] = 1
     SpikeData.append(data_neuro)
 
 TestNet.PlotWeight('Initial Weights.png')
@@ -200,9 +200,9 @@ SpikeData = []
 
 for i in range(num_classes):
     data, label = Dataset[i]
-    data_neuro = torch.zeros((data[-1][0]+1+word_space,num_channels))
+    data_neuro = torch.zeros((int(data[-1][0])+1+word_space,num_channels))
     for idx in data: 
-        data_neuro[idx[0],idx[1]] = 1
+        data_neuro[int(idx[0]),int(idx[1])] = 1
     SpikeData.append(data_neuro)
 
 Recorder = torch.zeros((num_classes,num_class))
@@ -227,9 +227,9 @@ counter = 0
 start_time = timeit.default_timer()
 
 #compile spike sequence for test dataset
-TestNeuro = torch.zeros((TestSet[0][-1][0]+1,num_channels))
+TestNeuro = torch.zeros((int(TestSet[0][-1][0])+1,num_channels))
 for idx in TestSet[0]:
-    TestNeuro[idx[0],idx[1]] = 1
+    TestNeuro[int(idx[0]),int(idx[1])] = 1
     counter +=1
     if counter % 10000000 == 0:
         print('Time elapsed: %d, Counter = %d' %(timeit.default_timer() - start_time,counter))
