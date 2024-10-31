@@ -308,7 +308,6 @@ The Data is stored in hdf5 format. For both the training and testing sets, there
        sodipodi:nodetypes="cc" />
   </g>
 </svg>
- NoiseTypes.svg…]()
 
 # Linear Classifier
 This file contains both the linear classifier tests performed on both the training and testing sets.
