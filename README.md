@@ -8,8 +8,6 @@ The Data is stored in hdf5 format. For both the training and testing sets, there
 
 ![NoiseTypes](https://github.com/user-attachments/assets/7997c699-816f-44eb-8830-39191316c2c4)
 
-![Uploading<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
    width="246.65456mm"
