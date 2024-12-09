@@ -6,8 +6,10 @@ import pickle
 import random
 import matplotlib.pyplot as plt
 import timeit
+import seaborn as sns
 
 
+#Define one layer spiking neural network for linear regression and test set evaluation.
 class Net(nn.Module):
     def __init__(self,num_inputs,num_class):
         super().__init__()
@@ -50,7 +52,7 @@ class Net(nn.Module):
 
 
 ### #Create single neuron network for linear regression ###
-#For this work, I think we just use a simple perceptron or fully connected layer. 
+
 f = open('Top50Dataset.pckl','rb')
 Dataset = pickle.load(f)
 f.close()
@@ -64,13 +66,14 @@ num_inputs = 2
 num_class = 1
 network = Net(num_inputs,num_class)
 with torch.no_grad():
+    #Set threshold high, only interested in accumulated membrane potential.
     network.lif1.threshold.copy_(10000*torch.ones_like(network.lif1.threshold.detach()))
     
 m_values = []
 mem_plot = []
 
 word_space = 15
-
+#Find the accumulated membrane potential for each element in the training set.
 for i in range(50):
     data,label = Dataset[i]
     data_neuro = torch.zeros((int(data[-1][0])+1+word_space,2))
@@ -82,37 +85,36 @@ for i in range(50):
         spk1, mem1 = network.step(data_neuro[j,:])
         mem_plot.append(mem1)
     m_values.append(network.mem1.item())
-    # print(m_values)
-    # print(m_values)
 
-print('Membrane potential values')
-print(m_values)
+# print('Membrane potential values')
+# print(m_values)
 
 #Create one-hot encoding for each word:
-b= np.zeros((50,50))
+y= np.zeros((50,50))
 for i in range(50):
-    b[i,i] = 1
+    y[i,i] = 1
 
 
-B= np.ones((50,2))
-B[:,0] = np.array(m_values)
+#Perform linear regression. Here we use y = x*Beta, where Beta = (x^T*x)^(-1)*(x^t)*y
+x= np.ones((50,2))
+x[:,0] = np.array(m_values)
 
-inverse = np.linalg.inv(np.matmul(B.transpose(1,0),B))
-beta = np.matmul(np.matmul(inverse,B.transpose(1,0)),b)
+inverse = np.linalg.inv(np.matmul(x.transpose(1,0),x))
+beta = np.matmul(np.matmul(inverse,x.transpose(1,0)),y)
 
-
-class_results = np.matmul(B,beta)
+#Perform inference with this value of beta
+class_results = np.matmul(x,beta)
+#Use argmax to determine which label
 test = np.argmax(class_results,0,keepdims=True)
 print('test')
 print(test)
 testlist = []
 correct = 0
-
 for i in range(50):
     if test[0,i] == i:
         correct+=1
-#Could go outside argmax, say something like minimum mean square error from vector to class_results.
-#Each row of class_results represents the vector that is meant to be similar to the row vector in b.
+#ALTERNATIVE: Instead of argmax, can use Mean Square Error on class_results with labels y. Yielded similar results.
+
 # for i in range(50):
 #     MSE = np.sum(np.square(class_results[i,:] - b),0)
 #     idx = np.argmin(MSE)
@@ -125,7 +127,7 @@ print('Total Correct:{}'.format(correct))
 
 
 ##### Test Set Verification #####
-
+#Evaluate network's ability to identify keywords in test set using STDP.
 #STDP parameters
 NegLength = 15
 PosLength = 15
@@ -137,6 +139,7 @@ WUpdate[(NegLength):(PosLength + NegLength + 1)] = Ap*np.linspace(1,0,PosLength+
 Window = np.zeros((2,PosLength + NegLength+1))
 Window[0,:] = DelT
 Window[1,:] = WUpdate
+#Note: using causal, weight dependant STDP rule from: "An Optimized Deep Spiking Neural Network Architecture Without Gradients"
 
 
 num_channels = 2
@@ -145,6 +148,7 @@ num_class = 50 #Number of classification neurons
 
 TestNet = Net(num_channels,num_class)
 TestNet.STDP = Window
+#Lower initial threshold for spiking activity
 init_wt = torch.rand_like(TestNet.fc1.weight.detach())
 initthresh = torch.ones_like(TestNet.lif1.threshold.detach())
 with torch.no_grad():
@@ -154,7 +158,8 @@ with torch.no_grad():
 epochs = 50
 SpikeData = []
 
-#Convert each dataset to spikes
+#Convert each dataset to spikes to be fed to network.
+#Should create function for this.
 for i in range(num_classes):
     data, label = Dataset[i]
     data_neuro = torch.zeros((int(data[-1][0])+1+word_space,num_channels))
@@ -166,7 +171,7 @@ TestNet.PlotWeight('Initial Weights.png')
 
 #Homeostatic regulation parameters
 Ath = 1e-1
-Tau_th = Ath/num_class/20 #20 is chosen arbitrarily
+Tau_th = Ath/num_class/20 #20 is chosen arbitrarily, should represent average number of timesteps for each input.
 
 for epo in range(epochs):
     #Convert each training input into spikes, and append into a list
@@ -197,6 +202,7 @@ TestNet.PlotWeight('Final Weight.png')
 
 #One additional run with no STDP or homeostatic regulation for class assignment.
 SpikeData = []
+
 
 for i in range(num_classes):
     data, label = Dataset[i]
@@ -240,6 +246,9 @@ incorrect_spikes = 0
 
 start_time = timeit.default_timer()
 
+#Not technically a confusion matrix, just a measure of correct vs incorrect for each class
+conf_matrix = torch.zeros((50,2))
+
 for t in range(TestNeuro.shape[0]):
         spk1, mem1 = TestNet.step(TestNeuro[t,:])
         input_times[TestNeuro[t,:]>0] = t
@@ -251,13 +260,26 @@ for t in range(TestNeuro.shape[0]):
             spk1_label = idx_classification[spk1.nonzero()][0,1].item()
             if t in TestingEndList[spk1_label]:
                 correct_spikes +=1
+                conf_matrix[spk1_label,0] +=1
             else:
                 incorrect_spikes +=1
+                conf_matrix[spk1_label,1] +=1
                 
 print('Correct Spikes')
 print(correct_spikes)
 print('Incorrect Spikes')
 print(incorrect_spikes)
+print('Confusion Matrix')
+print(conf_matrix)
+
+plt.figure(figsize = (15,10))
+img = sns.heatmap(
+        conf_matrix,annot= True, cmap = "YlGnBu",cbar_kws= {"label":"Scale"}
+    )
+plt.xlabel("Predicted Label")
+plt.ylabel("Actual Label")
+plt.savefig('Confusion Matrix.svg') #1st row is correct spikes, 2nd row is incorrect spikes
+plt.close()
 
 
 

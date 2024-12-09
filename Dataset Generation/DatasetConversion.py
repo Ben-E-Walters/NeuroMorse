@@ -8,10 +8,7 @@ Dropout = ['None','Low','High']
 Jitter = ['None','Low','High']
 Poisson = ['None','Low','High']
 
-# f = open('TestDict.pckl','rb')
-# TestDict = pickle.load(f)
-# f.close()
-
+#Opening this file for TestDictionary
 f = open('Top50Testset.pckl','rb')
 TestSet = pickle.load(f)
 TestDict = TestSet[1]
@@ -42,7 +39,7 @@ for d in Dropout:
             Spikes = []
             Channels = []
             Labels = []
-
+            #Using format outlined in the paper titled: NEUROMORSE: A TEMPORALLY STRUCTURED DATASET FOR NEUROMORPHIC COMPUTING
             for idx in Dataset:
                 TimeList = []
                 ChannelList = []
