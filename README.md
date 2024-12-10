@@ -1,7 +1,7 @@
 
 
 # NeuroMorse
-Repository for the code generation of the NeuroMorse Dataset, available at 10.5281/zenodo.12702379. Here, Morse code has been converted into two channel spike trains. The training set consists of the top 50 words used in the English language converted into Morse spike sequences. The goal is to identify these keywords in the test set, which is a corpus of ~50,000 wikipedia articles converted into Morse spike sequences. For increased complexity, versions of the training and testing dataset exist with Jitter, Dropout and Poissonian noise added. More information can be found at PAPER DOI. Note: due to the large file sizes, the final generated dataset is only available at zenodo.
+Repository for the code generation of the NeuroMorse Dataset, available at 10.5281/zenodo.12702379. Here, Morse code has been converted into two channel spike trains. The training set consists of the top 50 words used in the English language converted into Morse spike sequences. The goal is to identify these keywords in the test set, which is a corpus of ~50,000 wikipedia articles converted into Morse spike sequences. For increased complexity, versions of the training and testing dataset exist with Jitter, Dropout and Poissonian noise added. More information can be found at PAPER DOI. Note: due to the large file sizes, the final generated dataset is only available at zenodo DOI:10.5281/zenodo.12702379
 
 # Data Storage Scheme
 The Data is stored in hdf5 format. For both the training and testing sets, there are 27 seperate files. The 'Clean' files are the original datasets with no noise added. The remaining files contain various types and levels of noise. The types of noise can be seen below, and explanations for the levels of noise can be seen in PAPER DOI.
