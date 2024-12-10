@@ -1,7 +1,7 @@
 
 
 # NeuroMorse
-Repository for the code generation of the NeuroMorse Dataset, available at DOI:10.5281/zenodo.12702379. Here, Morse code has been converted into two channel spike trains. The training set consists of the top 50 words used in the English language converted into Morse spike sequences. The goal is to identify these keywords in the test set, which is a corpus of ~50,000 wikipedia articles converted into Morse spike sequences. For increased complexity, versions of the training and testing dataset exist with Jitter, Dropout and Poissonian noise added. More information can be found at PAPER DOI. Note: due to the large file sizes, the final generated dataset is only available at zenodo.
+Repository for the code generation of the NeuroMorse Dataset, available at DOI:10.5281/zenodo.12702379. Here, Morse code has been converted into two channel spike trains. The training set consists of the top 50 words used in the English language converted into Morse spike sequences. The goal is to identify these keywords in the test set, which is a corpus of ~50,000 wikipedia articles converted into Morse spike sequences. For increased complexity, versions of the training and testing dataset exist with Jitter, Dropout and Poissonian noise added. More information can be found in our paper titled: "NEUROMORSE: A TEMPORALLY STRUCTURED DATASET FOR NEUROMORPHIC COMPUTING". Note: due to the large file sizes, the final generated dataset is only available at zenodo.
 
 # Data Availability
 Due to the large file sizes of the test set, the hdf5 data is available at DOI:10.5281/zenodo.12702379.
@@ -317,3 +317,7 @@ This file contains both the linear classifier tests performed on both the traini
 
 # Dataset Generation
 This folder contains the files used to generate both the clean and noisy versions of the datasets, whilst the DatasetConversion.py file converts from the pckl format to hdf5.
+
+# SGD Network
+This folder contains a python notebook for a supervised learning approach for our dataset.
+
