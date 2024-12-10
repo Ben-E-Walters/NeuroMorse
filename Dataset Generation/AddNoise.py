@@ -6,7 +6,7 @@ import pickle
 import timeit
 
 
-
+#Open Previous training and testing sets
 f = open('Top50Dataset.pckl','rb')
 TrainDataset = pickle.load(f)
 f.close()
@@ -15,6 +15,7 @@ f = open('Top50Testset.pckl','rb')
 TestDataset = pickle.load(f)
 f.close()
 
+#Different noisy conditions.
 DropoutList = ['None','Low','High']
 JitterList = ['None','Low','High']
 PoissonianList = ['None','Low','High']
@@ -27,8 +28,8 @@ for d in DropoutList:
     if d == 'None':
                 Droprate = 0
     elif d == 'Low':
-                #Dropout the spikes
-                Droprate = 0.25/7.5
+                #Dropout the spikes #Intentionally low rates, as each spike is critically important. Aim for approximately one and two spikes in each input.
+                Droprate = 0.25/7.5 
     elif d == 'High':
                 Droprate = 0.5/7.5
 
@@ -37,7 +38,7 @@ for d in DropoutList:
         if j == 'None':
                JitterDev = 0
         elif j == 'Low':
-               JitterDev = 1
+               JitterDev = 1 #Standard deviation of just one and two timesteps
         elif j == 'High':
                JitterDev = 2
 
@@ -47,11 +48,11 @@ for d in DropoutList:
             if p =='None':
                    PoissonRate = 0.0
             elif p == 'Low':
-                   PoissonRate = 0.05
+                   PoissonRate = 0.05 #Number of poissonian spikes per timestep. Alternative is to say 1/0.05 = average time between spikes.
             elif p == 'High':
                    PoissonRate = 0.1
 
-
+            #### Add noise to training set ###
             NoiseDataset = []
             for data,label in TrainDataset:
                 #Calculate Dropout
@@ -90,7 +91,7 @@ for d in DropoutList:
             pickle.dump(NoiseDataset,f)
             f.close()
 
-            ### Test Dataset ###
+            ### Add noise to Test Dataset ###
             NoiseDataset = []
             TestData = TestDataset[0] 
             start_time = timeit.default_timer()
@@ -128,7 +129,7 @@ for d in DropoutList:
 
 
                 ReplacedData = np.concatenate((ReplacedData,Channel0_array,Channel1_array))
-
+            #Save dataset
             NoiseDataset.append((np.unique(ReplacedData),TestDataset[1]))
             print('Time Elapsed: %f'%(timeit.default_timer() - start_time))
             f = open('Test_Dropout-%s_Jitter-%s_Poisson-%s.pckl' %(d,j,p),'wb')

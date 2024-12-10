@@ -2,14 +2,15 @@
 #Edit this script to suit your purposes
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=10
+#SBATCH --cpus-per-task=1
 #SBATCH --mem=500G
-#SBATCH --job-name=Bunya_AutoEncode
+#SBATCH --job-name=MCode
 #SBATCH --time=2:00:00
 #SBATCH --partition=general
+#SBATCH --qos=normal
 #SBATCH --account=a_rahimi
-#SBATCH -o DatasetGeneratorOut.txt
-#SBATCH -e DatasetGeneratorError.txt
+#SBATCH -o DatasetGeneratorOut.output
+#SBATCH -e DatasetGeneratorError.error
 
 
 module load anaconda3/2022.05
