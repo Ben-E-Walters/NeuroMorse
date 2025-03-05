@@ -24,6 +24,8 @@ class Net(nn.Module):
         init_thr = torch.ones_like(self.lif1.threshold.detach())
         self.STDP = []
         self.eta = 0.1
+        self.Ath = 1e-1
+        self.Tau_th = 1e-1/50
         with torch.no_grad():
             self.fc1.weight.copy_(init_wt)
             self.lif1.threshold.copy_(init_thr)
