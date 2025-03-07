@@ -1,4 +1,26 @@
 import torch
+import pickle
+import argparse
+from LinClass import Net
+from STDPNetwork import Test
+
+def run(network_filename, dataset_filename):
+    f = open(network_filename,'rb')
+    network = pickle.load(f)
+    f.close()
+
+    f = open(dataset_filename,'rb')
+    dataset = pickle.load(f)
+    f.close()
 
 
-#Have all of the testing done with this script, may need to write a bash script to run them all simultaneously.
+    Test(network,dataset,network.idx_classification)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--network_filename",type=str,default = 'Network.pckl')
+    parser.add_argument("--dataset_filename",type = str, default = 'Test_Dropout-None_Jitter-None_Poisson-High.pckl')
+ 
+    args = parser.parse_args()
+    
+    run(**vars(args))

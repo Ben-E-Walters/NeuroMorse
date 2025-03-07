@@ -12,6 +12,7 @@ import numpy as np
     #Train data with necessary info
 
 # def Test(network, test_Data):
+#TODO: Place network class here as well from LinClass.
 
 def GenerateSTDP(PosLength,NegLength,Ap):
     # Generate STDP window
@@ -27,7 +28,7 @@ def GenerateSTDP(PosLength,NegLength,Ap):
     return Window
     #Note: using causal, weight dependant STDP rule from: "An Optimized Deep Spiking Neural Network Architecture Without Gradients"
 
-def GenerateTrainSpikes(Dataset,num_classes = 50, shuffle = True):
+def GenerateTrainSpikes(Dataset,num_classes = 50, shuffle = True, word_space = 15,num_channels = 2):
     #Use this to generate the data.
     #Also, should look at test set as well. This code should definitely be updated with some sort of transform and with batching.
     #TODO: Introduce a way to batch the data into smaller samples. Not really necessary for training, as training is small.
@@ -43,7 +44,7 @@ def GenerateTrainSpikes(Dataset,num_classes = 50, shuffle = True):
         random.shuffle(SpikeData)
     return torch.cat(SpikeData,0) #consider removing torch.cat
 
-def GenerateTestSpikes(TestSet):
+def GenerateTestSpikes(TestSet, num_channels = 2):
     #Use this to generate the spikes for the test set.
     #compile spike sequence for test dataset
     #Below requires some form of batching or transform to handle more efficiently.
@@ -58,16 +59,16 @@ def GenerateTestSpikes(TestSet):
             print('Time elapsed: %d, Counter = %d' %(timeit.default_timer() - start_time,counter))
     return TestNeuro
 
-def Train(network,dataset):
+def Train(network,dataset,epochs):
     #Train network
     for epo in range(epochs):
         TrainSpikes = GenerateTrainSpikes(dataset,50)
         TrainSpikes = TrainSpikes.to(torch.float)
 
         #Convert each training input into spikes, and append into a list
-        a = torch.randperm(num_classes) #For random order
+        a = torch.randperm(network.num_class) #For random order
 
-        input_times = torch.zeros(num_channels) #Determines the most recent input.
+        input_times = torch.zeros(network.num_inputs) #Determines the most recent input.
         
         network.mem1.zero_()
 
@@ -82,27 +83,27 @@ def Train(network,dataset):
 
             if torch.sum(spk1)>0:
                 delta_t = t - input_times
-                network.W1_Update(delta_t,spk1,PosLength)
+                network.W1_Update(delta_t,spk1,network.PosLength)
                 network.mem1.zero_()
 
     network.PlotWeight('Final Weight.png')
     return network
 
-def Assign_Hidden_Layer(network,dataset):
+def Assign_Hidden_Layer(network,dataset, word_space = 15):
     #Determine which neuron is assigned to which keyword in the training set.
     #Assignment run
     #One additional run with no STDP or homeostatic regulation for class assignment.
     SpikeData = []
 
 
-    for i in range(num_classes):
+    for i in range(network.num_class):
         data, label = dataset[i]
-        data_neuro = torch.zeros((int(data[-1][0])+1+word_space,num_channels))
+        data_neuro = torch.zeros((int(data[-1][0])+1+word_space,network.num_inputs))
         for idx in data: 
             data_neuro[int(idx[0]),int(idx[1])] = 1
         SpikeData.append(data_neuro)
 
-    Recorder = torch.zeros((num_classes,num_class))
+    Recorder = torch.zeros((network.num_class,network.num_class))
     i = 0
     for data in SpikeData:
         for t in range(data.shape[0]):
@@ -116,7 +117,7 @@ def Assign_Hidden_Layer(network,dataset):
 
 def Test(network,dataset,idx_classification):
     #Test the network
-    TestDict = TestSet[1]
+    TestDict = dataset[1]
     TestingEndList = [] #List of list for all end times for each keyword
 
     for key in TestDict.keys():
@@ -130,21 +131,18 @@ def Test(network,dataset,idx_classification):
     #Not technically a confusion matrix, just a measure of correct vs incorrect for each class
     conf_matrix = torch.zeros((50,2))
 
-    # TestSpikes = GenerateTestSpikes(dataset)
-    TestSpikes = torch.ones((10000,2))
+    TestSpikes = GenerateTestSpikes(dataset)
+    # TestSpikes = torch.ones((10000,2))
     # TestSpikes[200:300,0] = 1
 
-    #TODO: Run some form of loop to verify for all 27 cases of noise.
-    #Put the below script into another script file and use test or something like that. Submit seperate batch files each time.
-    input_times = torch.zeros(num_channels)
+    
+    input_times = torch.zeros(network.num_inputs)
     for t in range(TestSpikes.shape[0]):
             spk1, mem1 = network.step(TestSpikes[t,:])
             input_times[TestSpikes[t,:]>0] = t
 
             if t%1000000 ==0 & t>0:
                 print('Time Elapsed: %d, t = %d, correct = %i, incorrect = %i' %(timeit.default_timer()-start_time,t,correct_spikes,incorrect_spikes))
-                print('Im Breaking')
-                break
 
             if torch.sum(spk1)>0:
                 spk1_label = idx_classification[spk1.nonzero()][0,1].item()
@@ -178,61 +176,65 @@ def Test(network,dataset,idx_classification):
 
 
 
-##### Test Set Verification #####
-f = open('Top50Dataset.pckl','rb')
-TrainSet = pickle.load(f)
-f.close()
+# ##### Test Set Verification #####
+# f = open('Top50Dataset.pckl','rb')
+# TrainSet = pickle.load(f)
+# f.close()
 
-f = open('Top50Testset.pckl','rb')
-TestSet = pickle.load(f)
-f.close()
-#For now, use pckl files for convenience. Think about using h5 files or other code for easy loading.
+# #Should we train with our noisy datasets? That might be something we should investigate. Also, I do wonder why we're adding fixed levels of noise for one particular seed,
+# #surely it's more rigorous to provide code that adds noise independantly. Something to consider.
+# #TODO: add code that allows dataset to be loaded with appropriate level of noise. Use defined parameters for each level of noise.
 
-#timesteps between words:
-word_space = 15
+# f = open('Top50Testset.pckl','rb')
+# TestSet = pickle.load(f)
+# f.close()
+# #For now, use pckl files for convenience. Think about using h5 files or other code for easy loading.
 
-
-#Network parameters
-num_channels = 2
-num_classes = 50
-num_class = 50 #Number of classification neurons
-
-TestNet = Net(num_channels,num_class)
-#Lower initial threshold for spiking activity
-init_wt = torch.rand_like(TestNet.fc1.weight.detach())
-initthresh = torch.ones_like(TestNet.lif1.threshold.detach())
-with torch.no_grad():
-    TestNet.fc1.weight.copy_(init_wt)
-    TestNet.lif1.threshold.copy_(initthresh)
+# #timesteps between words:
+# word_space = 15
 
 
-#STDP parameters:
-Ap = 1
-NegLength = 15
-PosLength = 15
-TestNet.STDP = GenerateSTDP(PosLength,NegLength,Ap)
+# #Network parameters
+# num_channels = 2
+# num_classes = 50
+# num_class = 50 #Number of classification neurons
+
+# TestNet = Net(num_channels,num_class)
+# #Lower initial threshold for spiking activity
+# init_wt = torch.rand_like(TestNet.fc1.weight.detach())
+# initthresh = torch.ones_like(TestNet.lif1.threshold.detach())
+# with torch.no_grad():
+#     TestNet.fc1.weight.copy_(init_wt)
+#     TestNet.lif1.threshold.copy_(initthresh)
 
 
-epochs = 50
+# #STDP parameters:
+# Ap = 1
+# NegLength = 15
+# PosLength = 15
+# TestNet.STDP = GenerateSTDP(PosLength,NegLength,Ap)
+
+
+# epochs = 50
 
 
 
-TestNet.PlotWeight('Initial Weights.png')
+# TestNet.PlotWeight('Initial Weights.png')
 
-#Homeostatic regulation parameters
-TestNet.Ath = 1e-1
-TestNet.Tau_th = TestNet.Ath/num_class/20 #20 is chosen arbitrarily, should represent average number of timesteps for each input.
-TestNet.eta = 0.1
+# #Homeostatic regulation parameters
+# TestNet.Ath = 1e-1
+# TestNet.Tau_th = TestNet.Ath/num_class/20 #20 is chosen arbitrarily, should represent average number of timesteps for each input.
+# TestNet.eta = 0.1
 
-TestNet = Train(TestNet,TrainSet)
+# TestNet = Train(TestNet,TrainSet)
 
-#Save the network
+# #Save the network
 
-idx_classification = Assign_Hidden_Layer(TestNet,TrainSet)
+# idx_classification = Assign_Hidden_Layer(TestNet,TrainSet)
 
-f = open('Network,Idx.pckl','wb')
-pickle.dump((TestNet,idx_classification),f)
-f.close()
+# f = open('Network,Idx.pckl','wb')
+# pickle.dump((TestNet,idx_classification),f)
+# f.close()
 
 
-Test(TestNet,TestSet,idx_classification)
+# Test(TestNet,TestSet,idx_classification)
