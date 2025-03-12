@@ -17,12 +17,12 @@ import numpy as np
 def GenerateSTDP(PosLength,NegLength,Ap):
     # Generate STDP window
     
-    DelT = np.linspace(-NegLength,PosLength,NegLength+PosLength+1)
-    WUpdate = np.zeros(PosLength+NegLength+1)
+    DelT = torch.linspace(-NegLength,PosLength,NegLength+PosLength+1)
+    WUpdate = torch.zeros(PosLength+NegLength+1)
     
-    WUpdate[(NegLength):(PosLength + NegLength + 1)] = Ap*np.linspace(1,0,PosLength+1)
+    WUpdate[(NegLength):(PosLength + NegLength + 1)] = Ap*torch.linspace(1,0,PosLength+1)
 
-    Window = np.zeros((2,PosLength + NegLength+1))
+    Window = torch.zeros((2,PosLength + NegLength+1))
     Window[0,:] = DelT
     Window[1,:] = WUpdate
     return Window
@@ -83,7 +83,7 @@ def Train(network,dataset,epochs):
 
             if torch.sum(spk1)>0:
                 delta_t = t - input_times
-                network.W1_Update(delta_t,spk1,network.PosLength)
+                network.W1_Update(delta_t,spk1)
                 network.mem1.zero_()
 
     network.PlotWeight('Final Weight.png')

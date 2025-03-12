@@ -1,5 +1,5 @@
-import torch
-import pickle
+# import torch
+import dill as pickle
 import argparse
 from LinClass import Net
 from STDPNetwork import Test
@@ -14,7 +14,7 @@ def run(network_filename, dataset_filename):
     f.close()
 
 
-    Test(network,dataset,network.idx_classification)
+    Test(network,dataset[0],network.idx_classification)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
