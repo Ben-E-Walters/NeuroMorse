@@ -73,7 +73,7 @@ def LoadDataset(data_name,train = True,n_time_bins = 200):
 
 def Train(network,TrainData,epochs = 50,n_time_bins = 200):
     #This is general code for any network on any dataset.
-
+    start_time = timeit.default_timer()
     for epo in range(epochs):
         #Generate the spikes to present to the network.
         #TODO may need some code to help format the inputs for other datasets. This may still work though.
@@ -82,25 +82,14 @@ def Train(network,TrainData,epochs = 50,n_time_bins = 200):
 
         #Convert each training input into spikes, and append into a list
         a = torch.randperm(TrainData.__len__()) #For random order
-        start_time = timeit.default_timer()
-        count = 0
+        
+        
         for idx in a:
-
-            if count %50 ==0:
-                print('time elapsed: %f' %(timeit.default_timer()-start_time))
-                plt.figure()
-                plt.imshow(network.fc1.weight.detach()[:,0:700])
-                plt.savefig('Weight %i.png' %(count))
-                plt.close()
-
             SpikeData = TrainData[idx][0].to(torch.float)
-
-
             input_times = torch.zeros(network.num_inputs) #Determines the most recent input.
             
             network.mem1.zero_()
 
-            count +=1
 
             for t in range(n_time_bins):
                 spk1, mem1 = network.step(SpikeData[t].flatten())
@@ -115,6 +104,7 @@ def Train(network,TrainData,epochs = 50,n_time_bins = 200):
                     delta_t = t - input_times
                     network.W1_Update(delta_t,spk1)
                     network.mem1.zero_()
+        print('time elapsed:%f' %(timeit.default_timer() - start_time))
 
     network.PlotWeight('Final Weight.png')
     return network
@@ -174,11 +164,12 @@ def TrainDVS():
     # return TestNet
     
 def TrainSSC():
-    #Train STDP network for DVS dataset.
+    #Train STDP network for SSC dataset.
 
     n_time_bins = 200
     #Load dataset
     TrainData = LoadDataset(data_name='SSC',train = True,n_time_bins=200)
+
     # #Network parameters
     num_inputs = 700 #Equivalent to number of input channels for the dataset.
     num_classes = 35 #Number of classes but also number of output neurons
@@ -204,12 +195,8 @@ def TrainSSC():
 
     #Training epochs
     epochs = 50 #May be too much. must justify smaller value with potentially validation accuracy or something.
-
-
-
+    #View initial weights
     TestNet.PlotWeight('Initial Weights.png')
-
-    
 
     #Homeostatic regulation parameters
     TestNet.Ath = 1e-1
@@ -224,7 +211,7 @@ def TrainSSC():
     f.close()
 
 def TrainSHD():
-    #Train STDP network for DVS dataset.
+    #Train STDP network for SHD dataset.
 
     n_time_bins = 200
     #Load dataset
@@ -276,23 +263,8 @@ def TrainSHD():
 
 
 
-
-Name = 'SSC' #options include DVS, SSC, SHD and ASL
-
-TrainData = LoadDataset(Name,train = True)
-DVSNet = TrainSSC()
-# print(TrainData.classes)
-# # for i in range(15):
-# #     fig, axs = plt.subplots(2)
-# #     axs[0].imshow(TrainData[0][0][i,0,:,:])
-# #     axs[1].imshow(TrainData[0][0][i,1,:,:])
-# #     fig.savefig('Events plot%i.png' %(i))
-# #     # plt.figure()
-# #     # plt.imshow(TrainData[i][0][:,0,:])
-# #     # plt.savefig('SSC%i.png' %(i))
-# #     # plt.close()
-# print(Name)
-
+if __name__ == '__main__':
+    TrainSSC()
 
 
 
