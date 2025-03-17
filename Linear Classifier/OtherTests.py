@@ -6,6 +6,8 @@ import dill as pickle
 from LinClass import Net
 from STDPNetwork import GenerateSTDP
 
+import seaborn as sns
+
 #Run tests on DVS GEstures, SHD and other datasets.
 #This script is reserved for the STDP network only, so it should follow a similar trend. Make sure STDP network has train and test functions.
 #Datasets to definitely run: DVS Gestures, SHD, Spiking Speech Command (SSC), ASL DVS.
@@ -18,9 +20,6 @@ from STDPNetwork import GenerateSTDP
 
 # Names = ['DVS','ASL','SSC','SHD']
 
-
-
-#Have to redefine training and testing due to differences in NeuroMorse dataset.
 
 def LoadDataset(data_name,train = True,n_time_bins = 200):
     match data_name:
@@ -109,10 +108,40 @@ def Train(network,TrainData,epochs = 50,n_time_bins = 200):
     network.PlotWeight('Final Weight.png')
     return network
 
+def AssignNeurons(network,TrainData,n_time_bins = 200):
+    #Give each of the output neurons a label based on max spike count
+    Recorder = torch.zeros((network.num_class,network.num_class))
+    i = 0
+    network.mem1.zero_()
+    for SpikeData, label in TrainData:
+        SpikeData = SpikeData.to(torch.float)
+        for t in range(n_time_bins):
+            spk1, mem1 = network.step(SpikeData[t].flatten())
+            Recorder[label,:] += spk1.squeeze() #y axis is actual label, x axis is predicted label
+
+
+    #Using maximum spike count as a verification tool
+    vals, idx_classification = torch.max(Recorder,dim=0) #idx_classification is numerical value of label.
+    return idx_classification, Recorder
+
+def Test(network,TestData,n_time_bins = 200):
+    conf_matrix = torch.zeros((network.num_class,network.num_class))
+    for SpikeData, label in TestData:
+        SpikeData = SpikeData.to(torch.float)
+        output = torch.zeros(network.num_class) #Record output for classification
+        network.mem1.zero_()
+        for t in range(n_time_bins):
+            spk1, mem1 = network.step(SpikeData[t].flatten())
+            output += spk1.squeeze()
+        #Determine maximum spike count and corresponding class and update conf matrix
+        idx = torch.argmax(output)
+        conf_matrix[label,network.idx_classification[idx].item()] += 1
+    return conf_matrix
+        
+
 
 def TrainDVS():
     #Train STDP network for DVS dataset.
-
     n_time_bins = 200
     #Load dataset
     TrainData = LoadDataset(data_name='DVS',train = True,n_time_bins=200)
@@ -161,10 +190,10 @@ def TrainDVS():
     pickle.dump(TestNet,f)
     f.close()
 
-    # return TestNet
+    return TestNet, TrainData, n_time_bins
     
 def TrainSSC():
-    #Train STDP network for SSC dataset.
+    #Train STDP network for SSC dataset. Modify below network, STDP and homeostatic parameters as needed.
 
     n_time_bins = 200
     #Load dataset
@@ -209,6 +238,7 @@ def TrainSSC():
     f = open('SSCTrainedNetwork.pckl','wb')
     pickle.dump(TestNet,f)
     f.close()
+    return TestNet, TrainData, n_time_bins
 
 def TrainSHD():
     #Train STDP network for SHD dataset.
@@ -260,11 +290,54 @@ def TrainSHD():
     pickle.dump(TestNet,f)
     f.close()
 
-
-
+    return TestNet, TrainData, n_time_bins
+###########################################
 
 if __name__ == '__main__':
-    TrainSSC()
+    dataname = 'DVS' #Options include 'DVS','SHD','SSC'
+    match dataname:
+        case 'DVS':
+            network, TrainData, n_time_bins = TrainDVS() #Options are TrainDVS(), TrainSHD() and TrainSSC()
+        case 'SHD':
+            network, TrainData, n_time_bins = TrainSHD()
+        case 'SSC':
+            network, TrainData, n_time_bins = TrainSSC()
+
+    idx_classification, Recorder = AssignNeurons(network,TrainData,n_time_bins = n_time_bins)
+    network.idx_classification = idx_classification.to(torch.int)
+
+    #Plot Recorder to see spiking patterns during assignment
+    plt.figure()
+    img = sns.heatmap(Recorder,annot=True, cmap = 'hot_r',cbar_kws= {"label":"Scale"})
+    plt.xlabel('Predicted Label')
+    plt.ylabel('Actual Label')
+    plt.savefig(dataname +'Recorder.png')
+    plt.close()
+
+    TestData = LoadDataset(data_name=dataname,train = False,n_time_bins=200)
+
+    conf_matrix = Test(network,TestData,n_time_bins = n_time_bins)
+
+    f = open(dataname +'ConfusionMatrix.pckl','wb')
+    pickle.dump(conf_matrix,f)
+    f.close()
+
+
+    plt.figure()
+    img = sns.heatmap(conf_matrix,annot=True, cmap = 'hot_r',cbar_kws= {"label":"Scale"})
+    plt.xlabel('Predicted Label')
+    plt.ylabel('Actual Label')
+    plt.savefig(dataname + 'Confusion Matrix.png')
+    plt.close()
+
+    correct = torch.sum(torch.diagonal(conf_matrix))
+
+    error = correct/torch.sum(conf_matrix)
+    print('error:%f'%(error))
+
+
+
+
 
 
 
