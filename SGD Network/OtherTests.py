@@ -20,7 +20,7 @@ def LoadDataset(data_name,train = True,n_time_bins = 200):
             frame_transform = tonic.transforms.Compose([
                 tonic.transforms.ToFrame(sensor_size=dataset.sensor_size,n_time_bins=n_time_bins),
                 torch.from_numpy,
-                FlattenDims
+                FlattenDVSDims
 
                 
                 
@@ -45,7 +45,8 @@ def LoadDataset(data_name,train = True,n_time_bins = 200):
             #represent the rest of the spiking data. It will also convert to tensor for us to then implement in spiketorch.
             frame_transform = tonic.transforms.Compose([
                 tonic.transforms.ToFrame(sensor_size=dataset.sensor_size, n_time_bins = n_time_bins),
-                torch.from_numpy])
+                torch.from_numpy,
+                FlattenSHDDims])
 
             dataset = tonic.datasets.SHD(save_to=r'C:\Users\benwa\OneDrive\Documents\GitHub\NeuroMorse\Linear Classifier\data',transform = frame_transform, train=train)
         
@@ -64,9 +65,14 @@ def LoadDataset(data_name,train = True,n_time_bins = 200):
 
     return dataset
 
-def FlattenDims(tensor,n_time_bins = 200):
+#Can replace with classes so that reshaping is easier. 
+def FlattenDVSDims(tensor,n_time_bins = 200):
     #Use to flatten the DVS samples (can reshape for others)
     NewTensor = torch.reshape(tensor,(n_time_bins,2*128*128)).to(torch.float)
+    return NewTensor
+
+def FlattenSHDDims(tensor,n_time_bins = 200):
+    NewTensor = torch.reshape(tensor,(n_time_bins,700)).to(torch.float)
     return NewTensor
 
 
@@ -77,12 +83,12 @@ def FlattenDims(tensor,n_time_bins = 200):
 # Parameters
 spike_grad = surrogate.fast_sigmoid(slope=15)
 beta = 0.8
-num_channels = 2*128*128  # 700 for SHD, 2*128*128 for DVS
-num_classes = 11
+num_channels = 700  # 700 for SHD, 2*128*128 for DVS
+num_classes = 20
 learning_rate = 1e-3
 num_epochs = 2000
 
-name = 'DVS'
+name = 'SHD'
 dataset = LoadDataset(data_name=name,train = True,n_time_bins = 200)
 test_dataset = LoadDataset(data_name=name,train = False, n_time_bins = 200)
 
@@ -137,6 +143,7 @@ model = Net()
 criterion = nn.CrossEntropyLoss()  # Loss for classification
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
+#Addcomments
 # Training loop
 for epoch in range(num_epochs):
     model.train()
@@ -145,6 +152,8 @@ for epoch in range(num_epochs):
     for data, target in train_loader:
         optimizer.zero_grad()
 
+        #fix later
+        target = target.to(torch.long)
         # Forward pass
         outputs = model(data)
         loss = criterion(outputs, target)
