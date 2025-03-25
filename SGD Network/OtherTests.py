@@ -20,11 +20,7 @@ def LoadDataset(data_name,train = True,n_time_bins = 200):
             frame_transform = tonic.transforms.Compose([
                 tonic.transforms.ToFrame(sensor_size=dataset.sensor_size,n_time_bins=n_time_bins),
                 torch.from_numpy,
-                FlattenDVSDims
-
-                
-                
-
+                FlattenDVSDims  
             ])
 
             dataset = tonic.datasets.DVSGesture(save_to= r'C:\Users\benwa\OneDrive\Documents\GitHub\NeuroMorse\Linear Classifier\data',transform = frame_transform,train = train)
@@ -35,9 +31,9 @@ def LoadDataset(data_name,train = True,n_time_bins = 200):
             frame_transform = tonic.transforms.Compose([
                 tonic.transforms.ToFrame(sensor_size=dataset.sensor_size, n_time_bins = n_time_bins),
                 torch.from_numpy,
-
             ])
             dataset = tonic.datasets.ASLDVS(save_to=r'C:\Users\benwa\OneDrive\Documents\GitHub\NeuroMorse\Linear Classifier\data',transform=frame_transform)
+
         case 'SHD':
             dataset = tonic.datasets.SHD(save_to=r'C:\Users\benwa\OneDrive\Documents\GitHub\NeuroMorse\Linear Classifier\data', train=train)
 
@@ -83,12 +79,12 @@ def FlattenSHDDims(tensor,n_time_bins = 200):
 # Parameters
 spike_grad = surrogate.fast_sigmoid(slope=15)
 beta = 0.8
-num_channels = 700  # 700 for SHD, 2*128*128 for DVS
-num_classes = 20
+num_channels = 2*128*128  # 700 for SHD, 2*128*128 for DVS
+num_classes = 11
 learning_rate = 1e-3
-num_epochs = 2000
+num_epochs = 100
 
-name = 'SHD'
+name = 'DVS'
 dataset = LoadDataset(data_name=name,train = True,n_time_bins = 200)
 test_dataset = LoadDataset(data_name=name,train = False, n_time_bins = 200)
 
@@ -148,6 +144,10 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 for epoch in range(num_epochs):
     model.train()
     epoch_loss = 0
+    plt.figure()
+    plt.imshow(model.fc1.weight.detach(),cmap = 'hot_r')
+    plt.savefig('%sWeight%i.png' %(name,epoch))
+    plt.close()
 
     for data, target in train_loader:
         optimizer.zero_grad()
