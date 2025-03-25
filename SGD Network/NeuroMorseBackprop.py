@@ -328,7 +328,7 @@ spike_grad = surrogate.fast_sigmoid(slope=15)
 beta = 0.8
 num_channels = 2  # Dots and dashes
 learning_rate = 1e-3
-num_epochs = 2000
+num_epochs = 2000 #2000
 
 # Create DataLoader
 batch_size = 50
@@ -406,16 +406,21 @@ def evaluate_model(loader):
     model.eval()
     correct = 0
     total = 0
+    top_5 = 0
 
     with torch.no_grad():
         for data, target in loader:
             outputs = model(data)
             _, predicted = outputs.max(1)
             total += target.size(0)
+            _ , top5predicted = torch.topk(outputs,5,1)
+            top_5 += torch.sum(top5predicted== target.unsqueeze(1).repeat(1,5))
             correct += (predicted == target).sum().item()
 
     accuracy = 100 * correct / total
+    top5Accuracy = 100* top_5/total
     print(f"Accuracy: {accuracy:.2f}%")
+    print(f"top_5_Accuracy: {top5Accuracy:.2f}%")
     return accuracy
 
 # Evaluate the model on the training set (or validation/test set if available)
