@@ -188,8 +188,8 @@ for i in range(50):
 
 
 # Load a little bit of the corpus (test data)
-# with open('corpus.txt', 'r', encoding='utf8') as f:
-with open('/scratch/user/benwalters/Morse Code Dataset/NeuroMorse/Dataset Generation/corpus.txt','r',encoding = 'utf8') as f:
+with open('corpus.txt', 'r', encoding='utf8') as f:
+# with open('/scratch/user/benwalters/Morse Code Dataset/NeuroMorse/Dataset Generation/corpus.txt','r',encoding = 'utf8') as f:
     corpus = f.read().lower().split()
 
 # Select a random subset of words from the corpus
@@ -241,6 +241,7 @@ for word in cleaned_test_subset:
 
             # Append the character's spike train to the word's data
             data.extend(char_spikes_t_x)
+            
 
             # Update time for the next character
             time = char_spikes['t'][-1] + letter_space
@@ -504,34 +505,6 @@ for dropout in d:
                             t_jitter = np.random.normal(0,JitterDev,char_spikes_t_x.__len__())
                             char_spikes_t_x['t'] = char_spikes_t_x['t'] + t_jitter
                         
-                        #POISSNS
-                        #Calculate amount of Poisson Noise:
-                        if PoissonRate >0:
-                            #Limit is just to ensure that enough data points are used for the poissonian noise
-                            limit = char_spikes_t_x['t'][-1]
-                            Channel0_Poisson = np.random.exponential(1/PoissonRate,limit.__int__())
-                            Channel1_Poisson = np.random.exponential(1/PoissonRate,limit.__int__())
-
-                            Channel0_times = np.cumsum(Channel0_Poisson)
-                            Channel1_times = np.cumsum(Channel1_Poisson)
-
-                            Channel0_times = Channel0_times[Channel0_times<limit]
-                            Channel1_times = Channel1_times[Channel1_times<limit]
-
-                            Channel0_array = np.zeros(Channel0_times.shape[0],dtype = [('t','<f4'),('x','<f4')])
-                            Channel1_array = np.zeros(Channel1_times.shape[0],dtype = [('t','<f4'),('x','<f4')])
-
-                            Channel0_array['t'] = Channel0_times
-                            Channel0_array['x'] = 0
-                            # Channel0_array['p'] = 1
-
-                            Channel1_array['t'] = Channel1_times
-                            Channel1_array['x'] = 1
-                            # Channel1_array['p'] = 1
-
-
-                            char_spikes_t_x = np.concatenate((char_spikes_t_x,Channel0_array,Channel1_array))
-
                         # Append the character's spike train to the word's data
                         data.extend(char_spikes_t_x)
 
@@ -549,6 +522,34 @@ for dropout in d:
                     # Create a binary spike train tensor
                     max_time = int(data[-1]['t']) + 1 + word_space  # Add word spacing
                     data_neuro = torch.zeros((max_time, num_channels))  # Time x Channels
+
+                     #POISSNS Easier to add noise to whole words
+                    #Calculate amount of Poisson Noise:
+                    if PoissonRate >0:
+                        #Limit is just to ensure that enough data points are used for the poissonian noise
+                        limit = max_time
+                        Channel0_Poisson = np.random.exponential(1/PoissonRate,limit.__int__())
+                        Channel1_Poisson = np.random.exponential(1/PoissonRate,limit.__int__())
+
+                        Channel0_times = np.cumsum(Channel0_Poisson)
+                        Channel1_times = np.cumsum(Channel1_Poisson)
+
+                        Channel0_times = Channel0_times[Channel0_times<limit]
+                        Channel1_times = Channel1_times[Channel1_times<limit]
+
+                        Channel0_array = np.zeros(Channel0_times.shape[0],dtype = [('t','<f4'),('x','<f4')])
+                        Channel1_array = np.zeros(Channel1_times.shape[0],dtype = [('t','<f4'),('x','<f4')])
+
+                        Channel0_array['t'] = Channel0_times
+                        Channel0_array['x'] = 0
+                        # Channel0_array['p'] = 1
+
+                        Channel1_array['t'] = Channel1_times
+                        Channel1_array['x'] = 1
+                        # Channel1_array['p'] = 1
+
+
+                        data = np.concatenate((data,Channel0_array,Channel1_array))
 
                     # Populate the spike train tensor
                     for idx in data:
