@@ -8,6 +8,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import string
 
+import os
+import uuid
+import subprocess
+
 #Create a Morse code dataset.
 Morse_Dict = {"a":'.-',
               "b":'-...',
@@ -184,7 +188,8 @@ for i in range(50):
 
 
 # Load a little bit of the corpus (test data)
-with open('corpus.txt', 'r', encoding='utf8') as f:
+# with open('corpus.txt', 'r', encoding='utf8') as f:
+with open('/scratch/user/benwalters/Morse Code Dataset/NeuroMorse/Dataset Generation/corpus.txt','r',encoding = 'utf8') as f:
     corpus = f.read().lower().split()
 
 # Select a random subset of words from the corpus
@@ -429,3 +434,186 @@ print(f"Train accuracy: {accuracy:.2f}%")
 
 test_accuracy = evaluate_model(test_loader)
 print(f"Test accuracy: {test_accuracy:.2f}%")
+
+#Add a loop that goes through all of the noisy datasets. Maybe even have a seperate test script being submitted.
+
+d = ['None','Low','High']
+j = ['None','Low','High']
+p = ['None','Low','High']
+
+
+for dropout in d:
+    for jitter in j:
+        for poisson in p:
+            dataset_filename = 'Test_Dropout-%s_Jitter-%s_Poisson-%s' %(dropout,jitter,poisson)
+            print('------------'+dataset_filename+'------------')
+
+            if dropout == 'None':
+                Droprate = 0
+            elif dropout == 'Low':
+                        #Dropout the spikes #Intentionally low rates, as each spike is critically important. Aim for approximately one and two spikes in each input.
+                        Droprate = 0.25/7.5 
+            elif dropout == 'High':
+                        Droprate = 0.5/7.5
+
+            if jitter == 'None':
+                JitterDev = 0
+            elif jitter == 'Low':
+                JitterDev = 1 #Standard deviation of just one and two timesteps
+            elif jitter == 'High':
+                JitterDev = 2
+                    
+            if poisson =='None':
+                PoissonRate = 0.0
+            elif poisson == 'Low':
+                PoissonRate = 0.05 #Number of poissonian spikes per timestep. Alternative is to say 1/0.05 = average time between spikes.
+            elif poisson == 'High':
+                PoissonRate = 0.1
+
+            TestSpikeDataset = []
+            test_labels = []
+            #DEFNITELY REPLACE THIS WITH SOME SORT OF FUNCTION CALL. CALL IT CREATE DATASET.
+            #Create appropriate dataset with noise:
+            for word in cleaned_test_subset:
+                # Initialize spike train data and label
+                data = []
+                label = word_to_index.get(word, OOV_label)  # Assign label or OOV label
+                time = 0
+
+                # Generate spike train for the word
+                for ch in word:
+                    if ch in Morse_Spike_Dict:
+                        # Retrieve the spike train for the character
+                        char_spikes = np.copy(Morse_Spike_Dict[ch])
+
+                        # Adjust the spike times to account for the current time
+                        char_spikes['t'] += time
+
+                        # Convert to the desired structured array format
+                        char_spikes_t_x = np.zeros(len(char_spikes), dtype=[('t', '<f4'), ('x', '<f4')])
+                        char_spikes_t_x['t'] = char_spikes['t']
+                        char_spikes_t_x['x'] = char_spikes['x']
+
+                        #Add noise to the dataset.
+                        #Dropout
+                        char_spikes_t_x = np.delete(char_spikes_t_x,np.random.random(char_spikes_t_x.shape)<Droprate)
+
+                        #Jitter
+                        #Calculate Jitter                        
+                        if JitterDev>0:
+                            t_jitter = np.random.normal(0,JitterDev,char_spikes_t_x.__len__())
+                            char_spikes_t_x['t'] = char_spikes_t_x['t'] + t_jitter
+                        
+                        #POISSNS
+                        #Calculate amount of Poisson Noise:
+                        if PoissonRate >0:
+                            #Limit is just to ensure that enough data points are used for the poissonian noise
+                            limit = char_spikes_t_x['t'][-1]
+                            Channel0_Poisson = np.random.exponential(1/PoissonRate,limit.__int__())
+                            Channel1_Poisson = np.random.exponential(1/PoissonRate,limit.__int__())
+
+                            Channel0_times = np.cumsum(Channel0_Poisson)
+                            Channel1_times = np.cumsum(Channel1_Poisson)
+
+                            Channel0_times = Channel0_times[Channel0_times<limit]
+                            Channel1_times = Channel1_times[Channel1_times<limit]
+
+                            Channel0_array = np.zeros(Channel0_times.shape[0],dtype = [('t','<f4'),('x','<f4')])
+                            Channel1_array = np.zeros(Channel1_times.shape[0],dtype = [('t','<f4'),('x','<f4')])
+
+                            Channel0_array['t'] = Channel0_times
+                            Channel0_array['x'] = 0
+                            # Channel0_array['p'] = 1
+
+                            Channel1_array['t'] = Channel1_times
+                            Channel1_array['x'] = 1
+                            # Channel1_array['p'] = 1
+
+
+                            char_spikes_t_x = np.concatenate((char_spikes_t_x,Channel0_array,Channel1_array))
+
+                        # Append the character's spike train to the word's data
+                        data.extend(char_spikes_t_x)
+
+                        # Update time for the next character
+                        time = char_spikes['t'][-1] + letter_space
+                    else:
+                        # Skip characters not in Morse_Spike_Dict
+                        continue
+
+                # Add spacing for the next word
+                if data:
+                    # Append the word's spike train to the dataset
+                    data = np.array(data, dtype=[('t', '<f4'), ('x', '<f4')])
+
+                    # Create a binary spike train tensor
+                    max_time = int(data[-1]['t']) + 1 + word_space  # Add word spacing
+                    data_neuro = torch.zeros((max_time, num_channels))  # Time x Channels
+
+                    # Populate the spike train tensor
+                    for idx in data:
+                        data_neuro[int(idx['t']), int(idx['x'])] = 1
+
+                    # Append the processed word's spike train and label
+                    TestSpikeDataset.append(data_neuro)
+                    test_labels.append(label)
+            max_length = max(tensor.shape[0] for tensor in TestSpikeDataset)
+
+            # Pad all tensors to max_length
+            for i in range(len(TestSpikeDataset)):
+                padding = max_length - TestSpikeDataset[i].shape[0]
+                TestSpikeDataset[i] = F.pad(TestSpikeDataset[i], (0, 0, 0, padding), mode='constant', value=0)  # Pad at the end
+
+            test_inputs = torch.stack(TestSpikeDataset)
+            test_labels = torch.tensor(test_labels)
+            test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+
+            plt.figure()
+            plt.imshow(model.fc1.weight.detach())
+            plt.savefig(dataset_filename+'.png')
+            plt.close()
+
+
+            
+            test_accuracy = evaluate_model(test_loader)
+            print(f"Test accuracy: {test_accuracy:.2f}%") 
+
+#             args = " --network_filename Network.pckl --dataset_filename %s" %(dataset_filename)
+
+#             #Create a shell script so that each test is submitted.
+#             bash_script = """#!/bin/bash -l
+# #Edit this script to suit your purposes
+# #SBATCH --nodes=1
+# #SBATCH --ntasks-per-node=1
+# #SBATCH --cpus-per-task=5
+# #SBATCH --mem=1000G
+# #SBATCH --job-name=Test
+# #SBATCH --time=50:00:00
+# #SBATCH --partition=general
+# #SBATCH --account=a_rahimi
+# #SBATCH -o "%s"
+# #SBATCH -e "%s"
+# #SBATCH --constraint=epyc3
+# #SBATCH --batch=epyc3
+
+
+# module load anaconda3/2022.05
+# source /sw/auto/rocky8.6/epyc3/software/Anaconda3/2022.05/etc/profile.d/conda.sh
+# conda activate myenv
+# cd /scratch/user/benwalters/Morse Code Dataset/Linear Classifier
+# python TestNeuroMorse.py%s
+
+# """ %(os.path.join(os.getcwd(), 'out' + dataset_filename+'.txt'),
+#         os.path.join(os.getcwd(), 'error' +dataset_filename+'.txt'),
+#         args+'.pckl')#This is to edit the above script.
+
+
+#             myuuid = str(uuid.uuid4())
+#             with open(os.path.join(os.getcwd(), "%s.sh" % myuuid), "w+") as f:
+#                 f.writelines(bash_script)
+
+#             res = subprocess.run("sbatch %s.sh" % myuuid, capture_output=True, shell=True)
+#             print(args)
+#             print(res.stdout.decode())
+#             os.remove(os.path.join(os.getcwd(), "%s.sh" % myuuid))
+#             time.sleep(2)
