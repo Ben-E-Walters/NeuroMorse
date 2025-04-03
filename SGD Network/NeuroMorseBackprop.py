@@ -188,11 +188,10 @@ for i in range(50):
 
 
 # Load a little bit of the corpus (test data)
-with open('corpus.txt', 'r', encoding='utf8') as f:
-# with open('/scratch/user/benwalters/Morse Code Dataset/NeuroMorse/Dataset Generation/corpus.txt','r',encoding = 'utf8') as f:
+with open('../data/corpus.txt', 'r', encoding='utf8') as f:
     corpus = f.read().lower().split()
 
-# Select a random subset of words from the corpus
+# Select a random subset of words from the corpus, bit slow to load the whole thing.
 subset_size = 100000  # Adjust this number as needed
 # subset_indices = random.sample(range(len(corpus)), subset_size)
 test_subset = corpus[0:subset_size]

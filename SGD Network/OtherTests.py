@@ -15,7 +15,7 @@ def LoadDataset(data_name,train = True,n_time_bins = 200):
     match data_name:
         case 'DVS':
             size = 2*128*128
-            dataset = tonic.datasets.DVSGesture(save_to=r'C:\Users\benwa\OneDrive\Documents\GitHub\NeuroMorse\Linear Classifier\data',train=train)
+            dataset = tonic.datasets.DVSGesture(save_to='./data',train=train)
 
             frame_transform = tonic.transforms.Compose([
                 tonic.transforms.ToFrame(sensor_size=dataset.sensor_size,n_time_bins=n_time_bins),
@@ -23,19 +23,19 @@ def LoadDataset(data_name,train = True,n_time_bins = 200):
                 FlattenDVSDims  
             ])
 
-            dataset = tonic.datasets.DVSGesture(save_to= r'C:\Users\benwa\OneDrive\Documents\GitHub\NeuroMorse\Linear Classifier\data',transform = frame_transform,train = train)
+            dataset = tonic.datasets.DVSGesture(save_to= './data',transform = frame_transform,train = train)
 
         case 'ASL':
-            dataset = tonic.datasets.ASLDVS(save_to=r'C:\Users\benwa\OneDrive\Documents\GitHub\NeuroMorse\Linear Classifier\data')
+            dataset = tonic.datasets.ASLDVS(save_to= './data')
 
             frame_transform = tonic.transforms.Compose([
                 tonic.transforms.ToFrame(sensor_size=dataset.sensor_size, n_time_bins = n_time_bins),
                 torch.from_numpy,
             ])
-            dataset = tonic.datasets.ASLDVS(save_to=r'C:\Users\benwa\OneDrive\Documents\GitHub\NeuroMorse\Linear Classifier\data',transform=frame_transform)
+            dataset = tonic.datasets.ASLDVS(save_to= './data',transform=frame_transform)
 
         case 'SHD':
-            dataset = tonic.datasets.SHD(save_to=r'C:\Users\benwa\OneDrive\Documents\GitHub\NeuroMorse\Linear Classifier\data', train=train)
+            dataset = tonic.datasets.SHD(save_to= './data', train=train)
 
             #Below code is the transformation that we want. This gives us spikes where each 0th dimension represents a timestep and the remaining dimensions
             #represent the rest of the spiking data. It will also convert to tensor for us to then implement in spiketorch.
@@ -44,20 +44,20 @@ def LoadDataset(data_name,train = True,n_time_bins = 200):
                 torch.from_numpy,
                 FlattenSHDDims])
 
-            dataset = tonic.datasets.SHD(save_to=r'C:\Users\benwa\OneDrive\Documents\GitHub\NeuroMorse\Linear Classifier\data',transform = frame_transform, train=train)
+            dataset = tonic.datasets.SHD(save_to= './data',transform = frame_transform, train=train)
         
         case 'SSC':
             if train == True:
                 split = 'train'
             else:
                 split = 'test'
-            dataset = tonic.datasets.SSC(save_to=r'C:\Users\benwa\OneDrive\Documents\GitHub\NeuroMorse\Linear Classifier\data',split = split)
+            dataset = tonic.datasets.SSC(save_to= './data',split = split)
 
             frame_transform = tonic.transforms.Compose([
                 tonic.transforms.ToFrame(sensor_size = dataset.sensor_size, n_time_bins = 200),
                 torch.from_numpy
             ])
-            dataset = tonic.datasets.SSC(save_to=r'C:\Users\benwa\OneDrive\Documents\GitHub\NeuroMorse\Linear Classifier\data',transform= frame_transform, split = split)
+            dataset = tonic.datasets.SSC(save_to= './data',transform= frame_transform, split = split)
 
     return dataset
 
