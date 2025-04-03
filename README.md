@@ -312,12 +312,12 @@ The Data is stored in hdf5 format. For both the training and testing sets, there
   </g>
 </svg>
 
-# Linear Classifier
-This file contains both the linear classifier tests performed on both the training and testing sets.
-
 # Dataset Generation
 This folder contains the files used to generate both the clean and noisy versions of the datasets, whilst the DatasetConversion.py file converts from the pckl format to hdf5.
 
-# SGD Network
+# Linear Classifier
+This file contains both the linear classifier tests performed on both the training and testing sets.
+
+# Supervised Network
 This folder contains a python notebook for a supervised learning approach for our dataset.
 
