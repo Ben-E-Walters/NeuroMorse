@@ -6,6 +6,9 @@ Repository for the code generation of the NeuroMorse Dataset, available at  http
 # Data Availability
 Due to the large file sizes of the test set, the hdf5 data is available at DOI:10.5281/zenodo.12702379.
 
+# Requirements
+All scripts presented in this repository were created using python. Conda was used to manage the software environment, and all requirements can be found in the spec-file.txt file.
+
 # Data Storage Scheme
 The Data is stored in hdf5 format. For both the training and testing sets, there are 27 seperate files. The 'Clean' files are the original datasets with no noise added. The remaining files contain various types and levels of noise. The types of noise can be seen below, and explanations for the levels of noise can be seen in PAPER DOI.
 
