@@ -5,6 +5,17 @@ import tonic.functional as functional
 import pickle
 import timeit
 
+#Specify parameters for noise
+lowDroprate = 0.25/7.5
+highDroprate = 0.5/7.5
+
+lowJitter = 1
+highJitter = 2
+
+lowPoisson = 0.05
+highPoisson = 0.1
+
+
 
 #Open Previous training and testing sets
 f = open('../data/Top50Dataset.pckl','rb')
@@ -29,18 +40,18 @@ for d in DropoutList:
                 Droprate = 0
     elif d == 'Low':
                 #Dropout the spikes #Intentionally low rates, as each spike is critically important. Aim for approximately one and two spikes in each input.
-                Droprate = 0.25/7.5 
+                Droprate = lowDroprate 
     elif d == 'High':
-                Droprate = 0.5/7.5
+                Droprate = highDroprate
 
     for j in JitterList:
 
         if j == 'None':
                JitterDev = 0
         elif j == 'Low':
-               JitterDev = 1 #Standard deviation of just one and two timesteps
+               JitterDev = lowJitter #Standard deviation of just one and two timesteps
         elif j == 'High':
-               JitterDev = 2
+               JitterDev = highJitter
 
 
         for p in PoissonianList:
@@ -48,9 +59,9 @@ for d in DropoutList:
             if p =='None':
                    PoissonRate = 0.0
             elif p == 'Low':
-                   PoissonRate = 0.05 #Number of poissonian spikes per timestep. Alternative is to say 1/0.05 = average time between spikes.
+                   PoissonRate = lowPoisson #Number of poissonian spikes per timestep. Alternative is to say 1/0.05 = average time between spikes.
             elif p == 'High':
-                   PoissonRate = 0.1
+                   PoissonRate = highPoisson
 
             #### Add noise to training set ###
             NoiseDataset = []
@@ -87,7 +98,7 @@ for d in DropoutList:
 
                 NoiseDataset.append((np.unique(ReplacedData),label))
 
-            f = open('Train_Dropout-%s_Jitter-%s_Poisson-%s.pckl' %(d,j,p),'wb')
+            f = open('../data/Train/Train_Dropout-%s_Jitter-%s_Poisson-%s.pckl' %(d,j,p),'wb')
             pickle.dump(NoiseDataset,f)
             f.close()
 
@@ -132,7 +143,7 @@ for d in DropoutList:
             #Save dataset
             NoiseDataset.append((np.unique(ReplacedData),TestDataset[1]))
             print('Time Elapsed: %f'%(timeit.default_timer() - start_time))
-            f = open('Test_Dropout-%s_Jitter-%s_Poisson-%s.pckl' %(d,j,p),'wb')
+            f = open('../data/Test/Test_Dropout-%s_Jitter-%s_Poisson-%s.pckl' %(d,j,p),'wb')
             pickle.dump(NoiseDataset,f)
             f.close()
 

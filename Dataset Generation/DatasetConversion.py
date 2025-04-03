@@ -9,7 +9,7 @@ Jitter = ['None','Low','High']
 Poisson = ['None','Low','High']
 
 #Opening this file for TestDictionary
-f = open('Top50Testset.pckl','rb')
+f = open('../data/Top50Testset.pckl','rb')
 TestSet = pickle.load(f)
 TestDict = TestSet[1]
 f.close()
@@ -29,12 +29,12 @@ for d in Dropout:
                 name = 'Dropout-%s Jitter-%s Poisson-%s' %(d,j,p)
 
             ### For Train Dataset ###
-            f = open('Train_Dropout-%s_Jitter-%s_Poisson-%s.pckl' %(d,j,p),'rb')
+            f = open('../data/Train/Train_Dropout-%s_Jitter-%s_Poisson-%s.pckl' %(d,j,p),'rb')
             Dataset = pickle.load(f)
             f.close()
 
-            file = h5py.File('Train/%s.h5' %(name),'w')
-            file_test = h5py.File('Test/%s.h5' %(name),'w')
+            file = h5py.File('../data/Train/%s.h5' %(name),'w')
+            file_test = h5py.File('../data/Test/%s.h5' %(name),'w')
 
             Spikes = []
             Channels = []
@@ -68,7 +68,7 @@ for d in Dropout:
 
 
             ### For Test Dataset ###
-            f = open('Test_Dropout-%s_Jitter-%s_Poisson-%s.pckl' %(d,j,p),'rb')
+            f = open('../data/Test/Test_Dropout-%s_Jitter-%s_Poisson-%s.pckl' %(d,j,p),'rb')
             TestDataset = pickle.load(f)
             f.close()
 
