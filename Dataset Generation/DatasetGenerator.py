@@ -6,6 +6,12 @@ import string
 
 #Create a Morse code dataset.
 
+#Parameters for NeuroMorse
+space = 5 #Time between dots and dashes.
+letter_space = 10 #Time between letters
+word_space = 15 #Time between consecutive words
+
+
 #Relate characters to Morse code
 Morse_Dict = {"a":'.-',
               "b":'-...',
@@ -58,9 +64,7 @@ Morse_Dict = {"a":'.-',
               '$':'...-..-'}
 
 
-space = 5 #Time between dots and dashes.
-letter_space = 10 #Time between letters
-word_space = 15 #Time between consecutive words
+
 
 
 SpikeArray = [] #Array in txp format to be used
@@ -151,7 +155,7 @@ for idx,word in enumerate(Top50List):
     WordDataset.append((WholeArray,word))
 
 #Save training set in easy to use python format. To be converted to HDF5 format.
-f = open('Top50Dataset.pckl' ,'wb')
+f = open('../data/Top50Dataset.pckl' ,'wb')
 pickle.dump(WordDataset,f)
 f.close()
 
@@ -209,12 +213,8 @@ test_dict = {'the':[0,[],[]],
              'go':[0,[],[]],
              'me':[0,[],[]]}
 
-f = open('corpus.txt','r',encoding="utf8")
-time = 0
-list = [] #Simple list/array of all spike times for the test set.
-
 #Remove punctuation from corpus (ignoring identifying keywords with punctuation spike sequences for now)
-with open('corpus.txt', 'r', encoding='utf8') as f:
+with open('../data/corpus.txt', 'r', encoding='utf8') as f:
     corpus = f.read().lower().split()
 
 # Create a translation table
@@ -252,11 +252,9 @@ for i in range(50):
 
 
 #Save array and test_dictionary in python format. Will convert to HDF5 format.
-f = open('Top50Testset.pckl' ,'wb')
+f = open('../data/Top50Testset.pckl' ,'wb')
 pickle.dump((TestArray,test_dict),f)
 f.close()
-
-
 
 #Print counts of keywords in test set.
 for key in test_dict.keys():
@@ -281,8 +279,6 @@ plt.imshow(plotting,vmin = 0,vmax = 1)
 plt.title('First 2500 timesteps')
 plt.savefig('TestSetRaster.png')
 plt.close()
-
-
 
 
 #Plot Examples from training set

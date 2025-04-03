@@ -6,6 +6,8 @@ import uuid
 import time
 import random
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 from LinClass import Net
 # from STDPNetwork import GenerateSTDP, Assign_Hidden_Layer
 
@@ -70,31 +72,50 @@ def GenerateSTDP(PosLength,NegLength,Ap):
     return Window
     #Note: using causal, weight dependant STDP rule from: "An Optimized Deep Spiking Neural Network Architecture Without Gradients"
 
-def Assign_Hidden_Layer(network,dataset, word_space = 15):
+def Assign_Hidden_Layer(network,dataset, word_space = 15,test = False):
     #Determine which neuron is assigned to which keyword in the training set.
     #Assignment run
-    #One additional run with no STDP or homeostatic regulation for class assignment.
     SpikeData = []
-
-
     for i in range(network.num_class):
-        data, label = dataset[i]
-        data_neuro = torch.zeros((int(data[-1][0])+1+word_space,network.num_inputs))
-        for idx in data: 
-            data_neuro[int(idx[0]),int(idx[1])] = 1
-        SpikeData.append(data_neuro)
+            data, label = dataset[i]
+            data_neuro = torch.zeros((int(data[-1][0])+1+word_space,network.num_inputs))
+            for idx in data: 
+                data_neuro[int(idx[0]),int(idx[1])] = 1
+            SpikeData.append((data_neuro,i))
+    if test ==False:
+        Recorder = torch.zeros((network.num_class,network.num_class))
+        i = 0
+        for data,label in SpikeData:
+            for t in range(data.shape[0]):
+                spk1, mem1 = network.step(data[t,:])
+                Recorder[i,:] += spk1.squeeze()
+            i +=1
 
-    Recorder = torch.zeros((network.num_class,network.num_class))
-    i = 0
-    for data in SpikeData:
-        for t in range(data.shape[0]):
-            spk1, mem1 = network.step(data[t,:])
-            Recorder[i,:] += spk1.squeeze()
-        i +=1
+        #Using maximum spike count as a verification tool
+        vals, idx_classification = torch.max(Recorder,dim=0) #idx_classification is numerical value of label.
+        network.idx_classification = idx_classification
+    else:
+        conf_matrix = torch.zeros((TestNet.num_class,TestNet.num_class))
+        for data,label  in SpikeData:
+            output = torch.zeros(network.num_class) #Record output for classification
+            network.mem1.zero_()
+            for t in range(data.shape[0]):
+                spk1, mem1 = network.step(data[t,:])
+                output += spk1.squeeze()
+            #Determine maximum spike count and corresponding class and update conf matrix
+            idx = torch.argmax(output)
+            conf_matrix[label,network.idx_classification[idx].item()] += 1
 
-    #Using maximum spike count as a verification tool
-    vals, idx_classification = torch.max(Recorder,dim=0) #idx_classification is numerical value of label.
-    return idx_classification
+            plt.figure(figsize = (15,10))
+            img = sns.heatmap(
+                    conf_matrix,annot= True, cmap = "YlGnBu",cbar_kws= {"label":"Scale"}
+                )
+            plt.xlabel("Predicted Label")
+            plt.ylabel("Actual Label")
+            plt.savefig('Confusion Matrix.svg') #1st row is correct spikes, 2nd row is incorrect spikes
+            plt.close()
+        print(torch.sum(torch.diagonal(conf_matrix)))
+
 
 
 
@@ -156,9 +177,13 @@ TestNet.eta = 0.1
 TestNet = Train(TestNet,TrainSet,epochs)
 
 #Assign classes to the hidden layer
-idx_classification = Assign_Hidden_Layer(TestNet,TrainSet)
+Assign_Hidden_Layer(TestNet,TrainSet,test = False)
 
-TestNet.idx_classification = idx_classification
+# TestNet.idx_classification = idx_classification
+
+#Re present the training set to the network and calculate classification accuracy
+
+Assign_Hidden_Layer(TestNet,TrainSet, test = True)
 
 #Save network and network assignment
 f = open('Network.pckl','wb')

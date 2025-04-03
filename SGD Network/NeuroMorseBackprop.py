@@ -258,9 +258,38 @@ for word in cleaned_test_subset:
         max_time = int(data[-1]['t']) + 1 + word_space  # Add word spacing
         data_neuro = torch.zeros((max_time, num_channels))  # Time x Channels
 
+         #POISSNS Easier to add noise to whole words
+        # #Calculate amount of Poisson Noise:
+        # PoissonRate = 0.1
+        # if PoissonRate >0:
+        #     #Limit is just to ensure that enough data points are used for the poissonian noise
+        #     limit = max_time
+        #     Channel0_Poisson = np.random.exponential(1/PoissonRate,limit.__int__())
+        #     Channel1_Poisson = np.random.exponential(1/PoissonRate,limit.__int__())
+
+        #     Channel0_times = np.cumsum(Channel0_Poisson)
+        #     Channel1_times = np.cumsum(Channel1_Poisson)
+
+        #     Channel0_times = Channel0_times[Channel0_times<limit]
+        #     Channel1_times = Channel1_times[Channel1_times<limit]
+
+        #     Channel0_array = np.zeros(Channel0_times.shape[0],dtype = [('t','<f4'),('x','<f4')])
+        #     Channel1_array = np.zeros(Channel1_times.shape[0],dtype = [('t','<f4'),('x','<f4')])
+
+        #     Channel0_array['t'] = Channel0_times
+        #     Channel0_array['x'] = 0
+        #     # Channel0_array['p'] = 1
+
+        #     Channel1_array['t'] = Channel1_times
+        #     Channel1_array['x'] = 1
+        #     # Channel1_array['p'] = 1
+
+
+        #     data = np.concatenate((data,Channel0_array,Channel1_array))
+
         # Populate the spike train tensor
         for idx in data:
-            data_neuro[int(idx['t']), int(idx['x'])] = 1
+            data_neuro[int(np.floor(idx['t'])), int(idx['x'])] = 1
 
         # Append the processed word's spike train and label
         TestSpikeDataset.append(data_neuro)

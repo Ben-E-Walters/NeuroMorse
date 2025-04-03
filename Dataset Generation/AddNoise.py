@@ -7,11 +7,11 @@ import timeit
 
 
 #Open Previous training and testing sets
-f = open('Top50Dataset.pckl','rb')
+f = open('../data/Top50Dataset.pckl','rb')
 TrainDataset = pickle.load(f)
 f.close()
 
-f = open('Top50Testset.pckl','rb')
+f = open('../data/Top50Testset.pckl','rb')
 TestDataset = pickle.load(f)
 f.close()
 

@@ -293,47 +293,58 @@ def TrainSHD():
     return TestNet, TrainData, n_time_bins
 ###########################################
 
-if __name__ == '__main__':
-    dataname = 'DVS' #Options include 'DVS','SHD','SSC'
-    match dataname:
-        case 'DVS':
-            network, TrainData, n_time_bins = TrainDVS() #Options are TrainDVS(), TrainSHD() and TrainSSC()
-        case 'SHD':
-            network, TrainData, n_time_bins = TrainSHD()
-        case 'SSC':
-            network, TrainData, n_time_bins = TrainSSC()
+f = open('SHDTrainedNetwork.pckl','rb')
+network = pickle.load(f)
+f.close()
 
-    idx_classification, Recorder = AssignNeurons(network,TrainData,n_time_bins = n_time_bins)
-    network.idx_classification = idx_classification.to(torch.int)
+print(network.lif1.threshold.detach())
 
-    #Plot Recorder to see spiking patterns during assignment
-    plt.figure()
-    img = sns.heatmap(Recorder,annot=True, cmap = 'hot_r',cbar_kws= {"label":"Scale"})
-    plt.xlabel('Predicted Label')
-    plt.ylabel('Actual Label')
-    plt.savefig(dataname +'Recorder.png')
-    plt.close()
+plt.figure()
+plt.imshow(network.fc1.weight.detach())
+plt.savefig('TrainedWeights.png')
+plt.close()
 
-    TestData = LoadDataset(data_name=dataname,train = False,n_time_bins=200)
+# if __name__ == '__main__':
+#     dataname = 'DVS' #Options include 'DVS','SHD','SSC'
+#     match dataname:
+#         case 'DVS':
+#             network, TrainData, n_time_bins = TrainDVS() #Options are TrainDVS(), TrainSHD() and TrainSSC()
+#         case 'SHD':
+#             network, TrainData, n_time_bins = TrainSHD()
+#         case 'SSC':
+#             network, TrainData, n_time_bins = TrainSSC()
 
-    conf_matrix = Test(network,TestData,n_time_bins = n_time_bins)
+#     idx_classification, Recorder = AssignNeurons(network,TrainData,n_time_bins = n_time_bins)
+#     network.idx_classification = idx_classification.to(torch.int)
 
-    f = open(dataname +'ConfusionMatrix.pckl','wb')
-    pickle.dump(conf_matrix,f)
-    f.close()
+#     #Plot Recorder to see spiking patterns during assignment
+#     plt.figure()
+#     img = sns.heatmap(Recorder,annot=True, cmap = 'hot_r',cbar_kws= {"label":"Scale"})
+#     plt.xlabel('Predicted Label')
+#     plt.ylabel('Actual Label')
+#     plt.savefig(dataname +'Recorder.png')
+#     plt.close()
+
+#     TestData = LoadDataset(data_name=dataname,train = False,n_time_bins=200)
+
+#     conf_matrix = Test(network,TestData,n_time_bins = n_time_bins)
+
+#     f = open(dataname +'ConfusionMatrix.pckl','wb')
+#     pickle.dump(conf_matrix,f)
+#     f.close()
 
 
-    plt.figure()
-    img = sns.heatmap(conf_matrix,annot=True, cmap = 'hot_r',cbar_kws= {"label":"Scale"})
-    plt.xlabel('Predicted Label')
-    plt.ylabel('Actual Label')
-    plt.savefig(dataname + 'Confusion Matrix.png')
-    plt.close()
+#     plt.figure()
+#     img = sns.heatmap(conf_matrix,annot=True, cmap = 'hot_r',cbar_kws= {"label":"Scale"})
+#     plt.xlabel('Predicted Label')
+#     plt.ylabel('Actual Label')
+#     plt.savefig(dataname + 'Confusion Matrix.png')
+#     plt.close()
 
-    correct = torch.sum(torch.diagonal(conf_matrix))
+#     correct = torch.sum(torch.diagonal(conf_matrix))
 
-    error = correct/torch.sum(conf_matrix)
-    print('error:%f'%(error))
+#     error = correct/torch.sum(conf_matrix)
+#     print('error:%f'%(error))
 
 
 
