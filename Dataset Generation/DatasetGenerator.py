@@ -155,7 +155,7 @@ for idx,word in enumerate(Top50List):
     WordDataset.append((WholeArray,word))
 
 #Save training set in easy to use python format. To be converted to HDF5 format.
-f = open('../data/Top50Dataset.pckl' ,'wb')
+f = open('../data/TrainDataset.pckl' ,'wb')
 pickle.dump(WordDataset,f)
 f.close()
 
@@ -252,7 +252,7 @@ for i in range(50):
 
 
 #Save array and test_dictionary in python format. Will convert to HDF5 format.
-f = open('../data/Top50Testset.pckl' ,'wb')
+f = open('../data/TestDataset.pckl' ,'wb')
 pickle.dump((TestArray,test_dict),f)
 f.close()
 
