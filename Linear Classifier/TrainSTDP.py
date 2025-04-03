@@ -8,7 +8,7 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from LinClass import Net
+from STDPNetwork import Net
 # from STDPNetwork import GenerateSTDP, Assign_Hidden_Layer
 
 

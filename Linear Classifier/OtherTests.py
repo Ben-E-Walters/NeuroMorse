@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import torch
 import timeit
 import dill as pickle
-from LinClass import Net
+from STDPNetwork import Net
 from STDPNetwork import GenerateSTDP
 
 import seaborn as sns

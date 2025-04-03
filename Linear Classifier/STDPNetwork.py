@@ -4,15 +4,58 @@ import random
 import timeit
 import matplotlib.pyplot as plt
 import seaborn as sns
-from LinClass import Net
 import numpy as np
+import torch.nn as nn
+import snntorch as snn
 
 
-# def Train(network,train_data):
-    #Train data with necessary info
 
-# def Test(network, test_Data):
-#TODO: Place network class here as well from LinClass.
+
+#Define one layer spiking neural network for linear regression and test set evaluation.
+class Net(nn.Module):
+    def __init__(self,num_inputs,num_class):
+        super().__init__()
+        self.fc1 = nn.Linear(num_inputs,num_class,bias = False)
+        self.lif1 = snn.Leaky(beta = 0.95, reset_mechanism='zero',inhibition=True,learn_threshold=True,threshold = torch.ones(num_class))
+        self.mem1 =torch.zeros(1,num_class)
+        self.num_inputs = num_inputs
+        self.num_class = num_class
+
+        init_wt = torch.ones_like(self.fc1.weight.detach())
+
+        init_thr = torch.ones_like(self.lif1.threshold.detach())
+        self.STDP = []
+        self.PosLength = 15
+        self.NegLength = 15
+        self.eta = 0.1
+        self.Ath = 1e-1
+        self.Tau_th = 1e-1/50
+        self.idx_classification = 0
+        with torch.no_grad():
+            self.fc1.weight.copy_(init_wt)
+            self.lif1.threshold.copy_(init_thr)
+
+    def step(self, x):
+
+        with torch.no_grad():
+            cur1 = self.fc1(x) 
+            spk1, self.mem1 = self.lif1(cur1.unsqueeze(0), self.mem1)
+
+        return spk1,self.mem1
+    def W1_Update(self,delta_t,spk1):
+        vals = torch.where(delta_t>=0,delta_t, torch.tensor(self.PosLength, dtype=torch.long))
+        vals.clamp_(0,self.PosLength).long()
+        indices = vals + self.PosLength
+        STDP_w = torch.gather(self.STDP[1],0,torch.tensor(indices,dtype = torch.long)).repeat(self.num_class,1)
+        delta_w = self.eta*(STDP_w - self.fc1.weight.detach())*spk1.transpose(0,1)
+        NewWeights = self.fc1.weight.detach()+delta_w
+        with torch.no_grad():
+            self.fc1.weight.copy_(NewWeights.clamp(0,1))
+    def PlotWeight(self,title):
+        plt1 = plt.figure()
+        plt.title('Receptive field')
+        plt.imshow(self.fc1.weight.detach(),vmin = 0, vmax = 1, cmap = "hot_r")  
+        plt1.savefig(title)
 
 def GenerateSTDP(PosLength,NegLength,Ap):
     # Generate STDP window

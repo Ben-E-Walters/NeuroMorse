@@ -1,7 +1,7 @@
 # import torch
 import dill as pickle
 import argparse
-from LinClass import Net
+from STDPNetwork import Net
 from STDPNetwork import Test
 
 def run(network_filename, dataset_filename):
