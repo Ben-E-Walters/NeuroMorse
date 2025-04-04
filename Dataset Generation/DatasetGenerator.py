@@ -155,7 +155,7 @@ for idx,word in enumerate(Top50List):
     WordDataset.append((WholeArray,word))
 
 #Save training set in easy to use python format. To be converted to HDF5 format.
-f = open('../data/TrainDataset.pckl' ,'wb')
+f = open('./data/TrainDataset.pckl' ,'wb')
 pickle.dump(WordDataset,f)
 f.close()
 
@@ -214,7 +214,7 @@ test_dict = {'the':[0,[],[]],
              'me':[0,[],[]]}
 
 #Remove punctuation from corpus (ignoring identifying keywords with punctuation spike sequences for now)
-with open('../data/corpus.txt', 'r', encoding='utf8') as f:
+with open('./data/corpus.txt', 'r', encoding='utf8') as f:
     corpus = f.read().lower().split()
 
 # Create a translation table
@@ -252,7 +252,7 @@ for i in range(50):
 
 
 #Save array and test_dictionary in python format. Will convert to HDF5 format.
-f = open('../data/TestDataset.pckl' ,'wb')
+f = open('./data/TestDataset.pckl' ,'wb')
 pickle.dump((TestArray,test_dict),f)
 f.close()
 

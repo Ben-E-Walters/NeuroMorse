@@ -19,7 +19,7 @@ def run(network_filename, dataset_filename):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--network_filename",type=str,default = 'Network.pckl')
-    parser.add_argument("--dataset_filename",type = str, default = 'Test_Dropout-None_Jitter-None_Poisson-High.pckl')
+    parser.add_argument("--dataset_filename",type = str, default = './data/Test_Dropout-None_Jitter-None_Poisson-High.pckl')
  
     args = parser.parse_args()
     

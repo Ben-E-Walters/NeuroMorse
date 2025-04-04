@@ -18,11 +18,11 @@ highPoisson = 0.1
 
 
 #Open Previous training and testing sets
-f = open('../data/Top50Dataset.pckl','rb')
+f = open('./data/Top50Dataset.pckl','rb')
 TrainDataset = pickle.load(f)
 f.close()
 
-f = open('../data/Top50Testset.pckl','rb')
+f = open('./data/Top50Testset.pckl','rb')
 TestDataset = pickle.load(f)
 f.close()
 
@@ -98,7 +98,7 @@ for d in DropoutList:
 
                 NoiseDataset.append((np.unique(ReplacedData),label))
 
-            f = open('../data/Train/Train_Dropout-%s_Jitter-%s_Poisson-%s.pckl' %(d,j,p),'wb')
+            f = open('./data/Train/Train_Dropout-%s_Jitter-%s_Poisson-%s.pckl' %(d,j,p),'wb')
             pickle.dump(NoiseDataset,f)
             f.close()
 
@@ -143,7 +143,7 @@ for d in DropoutList:
             #Save dataset
             NoiseDataset.append((np.unique(ReplacedData),TestDataset[1]))
             print('Time Elapsed: %f'%(timeit.default_timer() - start_time))
-            f = open('../data/Test/Test_Dropout-%s_Jitter-%s_Poisson-%s.pckl' %(d,j,p),'wb')
+            f = open('./data/Test/Test_Dropout-%s_Jitter-%s_Poisson-%s.pckl' %(d,j,p),'wb')
             pickle.dump(NoiseDataset,f)
             f.close()
 
