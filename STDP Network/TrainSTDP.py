@@ -122,7 +122,7 @@ def Assign_Hidden_Layer(network,dataset, word_space = 15,test = False):
 
 
 ##### Test Set Verification #####
-f = open('../data/Top50Dataset.pckl','rb')
+f = open('./data/Top50Dataset.pckl','rb')
 TrainSet = pickle.load(f)
 f.close()
 
