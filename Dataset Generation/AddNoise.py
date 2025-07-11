@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import tonic.functional as functional
 import pickle
 import timeit
-
+import h5py
 #Specify parameters for noise
 lowDroprate = 0.25/7.5
 highDroprate = 0.5/7.5
@@ -15,7 +15,7 @@ highJitter = 2
 lowPoisson = 0.05
 highPoisson = 0.1
 
-
+#### Load Data ####
 
 #Open Previous training and testing sets
 f = open('./data/Top50Dataset.pckl','rb')
@@ -25,6 +25,36 @@ f.close()
 f = open('./data/Top50Testset.pckl','rb')
 TestDataset = pickle.load(f)
 f.close()
+
+#### If working with hdf5 files:
+# test_a = h5py.File('Morse Code Dataset/Test/Clean.h5','r+')
+# train_a = h5py.File('Morse Code Dataset/Train/Clean.h5','r+')
+
+# arr = np.empty(shape = test_a['Spikes']['Times'][0].shape,dtype = [('t','<f4'), ('x','<f4'), ('p', '<f4')])
+
+# arr['t'] = test_a['Spikes']['Times'][0]
+# arr['x'] = test_a['Spikes']['Channels'][0]
+# arr['p'] = np.ones_like(arr['t'])
+
+
+# TrainDataset = []
+# TestDict = {}
+# for i in range(50):
+#     train_arr = np.empty(shape = train_a['Spikes']['Times'][i].shape,dtype = [('t','<f4'), ('x','<f4'), ('p', '<f4')])
+#     train_arr['t'] = train_a['Spikes']['Times'][i]
+#     train_arr['x'] = train_a['Spikes']['Channels'][i]
+#     train_arr['p'] = np.ones_like(train_arr['t'])
+#     TrainDataset.append((train_arr,train_a['Labels']['Labels'][i]))
+
+#     #Format TestDictionary for Test Dataset
+#     label = test_a['Labels']['Labels'][i]
+#     word_count = np.shape(test_a['Labels']['Start Times'][0])[0]
+#     TestDict[label] = [word_count,test_a['Labels']['Start Times'][i],test_a['Labels']['End Times'][i]]
+
+# TestDataset = (arr,TestDict)
+#### End of loading ####
+
+
 
 #Different noisy conditions.
 DropoutList = ['None','Low','High']
