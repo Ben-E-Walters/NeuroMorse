@@ -9,7 +9,7 @@ Jitter = ['None','Low','High']
 Poisson = ['None','Low','High']
 
 #Opening this file for TestDictionary
-f = open('./data/Top50Testset.pckl','rb')
+f = open('./data/TestDataset.pckl','rb')
 TestSet = pickle.load(f)
 TestDict = TestSet[1]
 f.close()
